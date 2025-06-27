@@ -390,8 +390,8 @@ body {
 /* Стили для текстовых полей */
 .input-cell textarea,
 .output-cell .result-box {
-    min-height: 200px;
-    height: 200px;
+    min-height: 300px;
+    height: 300px;
     resize: none;
 }
 
@@ -455,8 +455,8 @@ body {
 /* Стили для текстовых полей в GrammarCorrection */
 .grammar-grid .input-cell textarea,
 .grammar-grid .output-cell .result-textarea {
-    min-height: 200px;
-    height: 200px;
+    min-height: 300px;
+    height: 300px;
     resize: none;
 }
 
@@ -464,4 +464,51 @@ body {
 .empty-cell {
     display: flex;
     align-items: flex-start;
+}
+
+/* Анимация для трех точек загрузки */
+.loading-dots {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 16px;
+  color: #6c757d;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.loading-dots span {
+  animation: loadingDots 1.4s infinite ease-in-out;
+  font-weight: bold;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes loadingDots {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Оверлей для точек загрузки в GrammarCorrection */
+.loading-dots-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10;
 }

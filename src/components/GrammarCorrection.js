@@ -236,19 +236,28 @@ const GrammarCorrection = () => {
             <div className="result-container">
               <textarea 
                 className="form-control result-textarea" 
-                value={correctedText}
-                readOnly={!text.trim()}
-                placeholder="Corrected text will appear here..."
+                value={loading ? '' : correctedText}
+                readOnly={!text.trim() || loading}
+                placeholder={loading ? '' : "Corrected text will appear here..."}
                 style={{ 
                   background: '#f8f9fa', 
                   color: '#6c757d',
-                  minHeight: '200px',
+                  minHeight: '300px',
                   resize: 'none',
-                  opacity: text.trim() ? 1 : 0.6
+                  opacity: text.trim() && !loading ? 1 : 0.6
                 }}
                 onChange={handleCorrectedTextChange}
               />
-              {correctedText !== originalCorrectedText && originalCorrectedText && correctedText.trim() !== '' && text.trim() !== '' && (
+              {loading && (
+                <div className="loading-dots-overlay">
+                  <div className="loading-dots">
+                    <span>.</span>
+                    <span>.</span>
+                    <span>.</span>
+                  </div>
+                </div>
+              )}
+              {correctedText !== originalCorrectedText && originalCorrectedText && correctedText.trim() !== '' && text.trim() !== '' && !loading && (
                 <button 
                   type="button" 
                   className="btn btn-sm btn-outline-secondary reset-btn"
@@ -262,15 +271,6 @@ const GrammarCorrection = () => {
           </div>
         </div>
       </form>
-
-      {loading && (
-        <div className="loading">
-          <div className="spinner-border loading-spinner text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2">Fixing grammar...</p>
-        </div>
-      )}
 
       {error && (
         <div className="error-message">

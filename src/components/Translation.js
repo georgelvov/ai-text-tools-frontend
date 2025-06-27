@@ -9,7 +9,6 @@ const Translation = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('Russian');
-  const [showDropdown, setShowDropdown] = useState(false);
 
   // Refs для доступа к актуальным значениям в debounced функции
   const textRef = useRef(text);
@@ -140,7 +139,6 @@ const Translation = () => {
   // Handle language selection
   const handleLanguageClick = (language) => {
     setSelectedLanguage(language);
-    setShowDropdown(false);
     // Сразу обновляем ref для языка
     selectedLanguageRef.current = language;
     
@@ -208,7 +206,7 @@ const Translation = () => {
           <div className="grid-cell language-cell">
             <div className="language-selector">
               <div className="language-buttons">
-                {languages.slice(0, 3).map(lang => (
+                {languages.map(lang => (
                   <button
                     key={lang.code}
                     type="button"
@@ -218,28 +216,6 @@ const Translation = () => {
                     {lang.name}
                   </button>
                 ))}
-                <div className="dropdown">
-                  <button 
-                    type="button" 
-                    className="lang-btn dropdown-toggle"
-                    onClick={() => setShowDropdown(!showDropdown)}
-                  >
-                    <span>More</span>
-                  </button>
-                  <ul className={`dropdown-menu ${showDropdown ? 'show' : ''}`}>
-                    {languages.slice(3).map(lang => (
-                      <li key={lang.code}>
-                        <button 
-                          type="button" 
-                          className="dropdown-item"
-                          onClick={() => handleLanguageClick(lang.name)}
-                        >
-                          {lang.name}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
               </div>
             </div>
           </div>
@@ -251,19 +227,44 @@ const Translation = () => {
               value={text}
               onChange={handleTextChange}
               onPaste={handlePaste}
-              maxLength="5000" 
+              maxLength="1500" 
               required 
               placeholder="Enter or paste your text here..."
             />
             <div className="char-counter">
-              <span>{text.length}</span>/5000
+              <span>{text.length}</span>/1500
             </div>
           </div>
 
           {/* Ячейка 4: Поле перевода */}
           <div className="grid-cell output-cell">
             <div className="result-box">
-              {translatedText}
+              {loading ? (
+                <div className="loading-dots">
+                  <span>.</span>
+                  <span>.</span>
+                  <span>.</span>
+                </div>
+              ) : (
+                <textarea 
+                  className="form-control result-textarea" 
+                  value={translatedText}
+                  readOnly
+                  placeholder="Translated text will appear here..."
+                  style={{ 
+                    background: 'transparent', 
+                    color: '#6c757d',
+                    border: 'none',
+                    padding: '0',
+                    resize: 'none',
+                    minHeight: '300px',
+                    height: '300px',
+                    boxShadow: 'none',
+                    outline: 'none',
+                    opacity: text.trim() && !loading ? 1 : 0.6
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -273,15 +274,6 @@ const Translation = () => {
           {detectedLanguage}
         </div>
       </form>
-
-      {loading && (
-        <div className="loading">
-          <div className="spinner-border loading-spinner text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
-          <p className="mt-2">Translating...</p>
-        </div>
-      )}
 
       {error && (
         <div className="error-message">
