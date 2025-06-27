@@ -53,7 +53,7 @@ const GrammarCorrection = () => {
       const abortController = new AbortController();
       currentRequestRef.current = abortController;
 
-      const response = await fetch('http://localhost:8080/api/grammar/correct', {
+      const response = await fetch('https://ai-text-tools-backend.onrender.com/api/grammar/correct', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
