@@ -151,7 +151,11 @@ const GrammarCorrection = () => {
 
   // Handle model change
   const handleModelChange = (e) => {
-    setModel(e.target.value);
+    const newModel = e.target.value;
+    setModel(newModel);
+    // Сразу обновляем ref для модели
+    modelRef.current = newModel;
+    
     if (textRef.current.trim().length >= 3) {
       // Очищаем debounce timeout и сразу обрабатываем
       if (debounceTimeoutRef.current) {
