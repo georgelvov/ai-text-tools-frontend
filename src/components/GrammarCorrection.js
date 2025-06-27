@@ -5,6 +5,7 @@ const GrammarCorrection = () => {
   const [text, setText] = useState('');
   const [model, setModel] = useState('gemma-3-27b-it');
   const [correctedText, setCorrectedText] = useState('');
+  const [originalCorrectedText, setOriginalCorrectedText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [processingIndicator, setProcessingIndicator] = useState(false);
@@ -75,6 +76,7 @@ const GrammarCorrection = () => {
 
       const data = await response.json();
       setCorrectedText(data.correctedText);
+      setOriginalCorrectedText(data.correctedText);
     } catch (error) {
       // Игнорируем ошибку отмены запроса
       if (error.name === 'AbortError') {
@@ -166,6 +168,16 @@ const GrammarCorrection = () => {
     }
   };
 
+  // Handle corrected text changes
+  const handleCorrectedTextChange = (e) => {
+    setCorrectedText(e.target.value);
+  };
+
+  // Reset to original corrected text
+  const handleResetToOriginal = () => {
+    setCorrectedText(originalCorrectedText);
+  };
+
   // Cleanup при размонтировании компонента
   useEffect(() => {
     return () => {
@@ -206,20 +218,40 @@ const GrammarCorrection = () => {
               value={text}
               onChange={handleTextChange}
               onPaste={handlePaste}
-              maxLength="5000" 
+              maxLength="1500" 
               required 
               placeholder="Enter or paste your text here..."
             />
             <div className="char-counter">
-              <span>{text.length}</span>/5000
+              <span>{text.length}</span>/1500
             </div>
           </div>
           <div className="text-box">
-            <div className="result-box">
-              {processingIndicator && (
-                <div className="processing-indicator">Processing...</div>
+            <div className="result-container">
+              <textarea 
+                className="form-control result-textarea" 
+                value={correctedText}
+                readOnly={!text.trim()}
+                placeholder="Corrected text will appear here..."
+                style={{ 
+                  background: '#f8f9fa', 
+                  color: '#6c757d',
+                  minHeight: '200px',
+                  resize: 'none',
+                  opacity: text.trim() ? 1 : 0.6
+                }}
+                onChange={handleCorrectedTextChange}
+              />
+              {correctedText !== originalCorrectedText && originalCorrectedText && correctedText.trim() !== '' && text.trim() !== '' && (
+                <button 
+                  type="button" 
+                  className="btn btn-sm btn-outline-secondary reset-btn"
+                  onClick={handleResetToOriginal}
+                  title="Show original correction"
+                >
+                  Show original
+                </button>
               )}
-              {correctedText}
             </div>
           </div>
         </div>
