@@ -195,8 +195,9 @@ const GrammarCorrection = () => {
   return (
     <div className="tool-form">
       <form>
-        <div className="controls">
-          <div className="controls-row">
+        <div className="grammar-grid">
+          {/* Ячейка 1: Выбор модели */}
+          <div className="grid-cell model-cell">
             <div className="model-container">
               <select 
                 className="form-select model-select" 
@@ -209,10 +210,13 @@ const GrammarCorrection = () => {
               </select>
             </div>
           </div>
-        </div>
 
-        <div className="text-boxes">
-          <div className="text-box">
+          {/* Ячейка 2: Пустая для симметрии */}
+          <div className="grid-cell empty-cell">
+          </div>
+
+          {/* Ячейка 3: Поле ввода текста */}
+          <div className="grid-cell input-cell">
             <textarea 
               className="form-control" 
               value={text}
@@ -226,7 +230,9 @@ const GrammarCorrection = () => {
               <span>{text.length}</span>/1500
             </div>
           </div>
-          <div className="text-box">
+
+          {/* Ячейка 4: Поле с исправленным текстом */}
+          <div className="grid-cell output-cell">
             <div className="result-container">
               <textarea 
                 className="form-control result-textarea" 

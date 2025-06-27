@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import './Translation.css';
 
 const Translation = () => {
@@ -8,9 +8,28 @@ const Translation = () => {
   const [detectedLanguage, setDetectedLanguage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [processingIndicator, setProcessingIndicator] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('Russian');
   const [showDropdown, setShowDropdown] = useState(false);
+
+  // Refs для доступа к актуальным значениям в debounced функции
+  const textRef = useRef(text);
+  const modelRef = useRef(model);
+  const selectedLanguageRef = useRef(selectedLanguage);
+  const debounceTimeoutRef = useRef(null);
+  const isPastingRef = useRef(false);
+
+  // Обновляем refs при изменении значений
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
+
+  useEffect(() => {
+    modelRef.current = model;
+  }, [model]);
+
+  useEffect(() => {
+    selectedLanguageRef.current = selectedLanguage;
+  }, [selectedLanguage]);
 
   const languages = [
     { name: 'Russian', code: 'Russian' },
@@ -19,26 +38,12 @@ const Translation = () => {
     { name: 'Greek', code: 'Greek' }
   ];
 
-  // Debounce function
-  const debounce = useCallback((func, wait) => {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }, []);
-
   // Process text function for translation
   const processTranslateText = async () => {
-    const trimmedText = text.trim();
+    const trimmedText = textRef.current.trim();
     if (!trimmedText || trimmedText.length < 3) {
       setTranslatedText('');
       setDetectedLanguage('');
-      setProcessingIndicator(false);
       return;
     }
 
@@ -46,9 +51,6 @@ const Translation = () => {
     setError('');
     setTranslatedText('');
     setDetectedLanguage('');
-
-    // Show processing indicator
-    setProcessingIndicator(true);
 
     try {
       const response = await fetch('http://localhost:8080/api/translate', {
@@ -58,8 +60,8 @@ const Translation = () => {
         },
         body: JSON.stringify({ 
           text: trimmedText,
-          model,
-          targetLanguage: selectedLanguage
+          model: modelRef.current,
+          targetLanguage: selectedLanguageRef.current
         })
       });
 
@@ -70,48 +72,67 @@ const Translation = () => {
       const data = await response.json();
       setDetectedLanguage(`Detected language: ${data.detectedLanguage}`);
       setTranslatedText(data.translatedText);
-      setProcessingIndicator(false);
     } catch (error) {
       setError('An error occurred while processing your request. Please try again later.');
       console.error('Error:', error);
       setTranslatedText('');
-      setProcessingIndicator(false);
     } finally {
       setLoading(false);
     }
   };
 
   // Create debounced version of the process function
-  const debouncedTranslateProcess = useCallback(
-    debounce(() => {
-      setProcessingIndicator(false);
+  const debouncedTranslateProcess = useCallback(() => {
+    // Очищаем предыдущий timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      debounceTimeoutRef.current = null;
       processTranslateText();
-    }, 1500),
-    [text, model, selectedLanguage]
-  );
+    }, 1500);
+  }, []); // Убираем зависимости, так как используем refs
 
   // Handle text input
   const handleTextChange = (e) => {
     const newText = e.target.value;
     setText(newText);
     
+    // Если это вставка, не запускаем debounce
+    if (isPastingRef.current) {
+      return;
+    }
+    
     if (newText.trim().length === 0) {
       setTranslatedText('');
       setDetectedLanguage('');
-      setProcessingIndicator(false);
+      // Очищаем debounce timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+        debounceTimeoutRef.current = null;
+      }
       return;
     }
     
     if (newText.length >= 3) {
-      setProcessingIndicator(true);
       debouncedTranslateProcess();
     }
   };
 
   // Handle model change
   const handleModelChange = (e) => {
-    setModel(e.target.value);
-    if (text.trim().length >= 3) {
+    const newModel = e.target.value;
+    setModel(newModel);
+    // Сразу обновляем ref для модели
+    modelRef.current = newModel;
+    
+    if (textRef.current.trim().length >= 3) {
+      // Очищаем debounce timeout и сразу обрабатываем
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+        debounceTimeoutRef.current = null;
+      }
       processTranslateText();
     }
   };
@@ -120,59 +141,71 @@ const Translation = () => {
   const handleLanguageClick = (language) => {
     setSelectedLanguage(language);
     setShowDropdown(false);
-    if (text.trim().length >= 3) {
+    // Сразу обновляем ref для языка
+    selectedLanguageRef.current = language;
+    
+    if (textRef.current.trim().length >= 3) {
+      // Очищаем debounce timeout и сразу обрабатываем
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+        debounceTimeoutRef.current = null;
+      }
       processTranslateText();
     }
   };
 
   // Handle paste event
   const handlePaste = () => {
+    // Устанавливаем флаг вставки
+    isPastingRef.current = true;
+    
+    // Очищаем debounce timeout, так как вставка должна обрабатываться сразу
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
+    }
+    
+    // Небольшая задержка, чтобы текст успел вставиться и onChange сработал
     setTimeout(() => {
-      if (text.trim()) {
+      if (textRef.current.trim()) {
         processTranslateText();
       }
+      // Сбрасываем флаг вставки
+      isPastingRef.current = false;
     }, 100);
   };
+
+  // Cleanup при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      // Очищаем debounce timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="tool-form">
       <form>
-        <div className="text-boxes">
-          <div className="text-box-section">
-            <div className="controls">
-              <div className="controls-row">
-                <div className="model-container">
-                  <select 
-                    className="form-select model-select" 
-                    value={model}
-                    onChange={handleModelChange}
-                    required
-                  >
-                    <option value="gemma-3-27b-it">gemma-3-27b-it</option>
-                    <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-                  </select>
-                </div>
-                <div className="detected-language">
-                  {detectedLanguage}
-                </div>
-              </div>
-            </div>
-            <div className="text-box">
-              <textarea 
-                className="form-control" 
-                value={text}
-                onChange={handleTextChange}
-                onPaste={handlePaste}
-                maxLength="5000" 
-                required 
-                placeholder="Enter or paste your text here..."
-              />
-              <div className="char-counter">
-                <span>{text.length}</span>/5000
-              </div>
+        <div className="translation-grid">
+          {/* Ячейка 1: Выбор модели */}
+          <div className="grid-cell model-cell">
+            <div className="model-container">
+              <select 
+                className="form-select model-select" 
+                value={model}
+                onChange={handleModelChange}
+                required
+              >
+                <option value="gemma-3-27b-it">gemma-3-27b-it</option>
+                <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+              </select>
             </div>
           </div>
-          <div className="text-box-section">
+
+          {/* Ячейка 2: Кнопки выбора языка */}
+          <div className="grid-cell language-cell">
             <div className="language-selector">
               <div className="language-buttons">
                 {languages.slice(0, 3).map(lang => (
@@ -191,7 +224,7 @@ const Translation = () => {
                     className="lang-btn dropdown-toggle"
                     onClick={() => setShowDropdown(!showDropdown)}
                   >
-                    {/* <i className="arrow-down">▼</i> */}
+                    <span>More</span>
                   </button>
                   <ul className={`dropdown-menu ${showDropdown ? 'show' : ''}`}>
                     {languages.slice(3).map(lang => (
@@ -209,15 +242,35 @@ const Translation = () => {
                 </div>
               </div>
             </div>
-            <div className="text-box">
-              <div className="result-box">
-                {processingIndicator && (
-                  <div className="processing-indicator">Processing...</div>
-                )}
-                {translatedText}
-              </div>
+          </div>
+
+          {/* Ячейка 3: Поле ввода текста */}
+          <div className="grid-cell input-cell">
+            <textarea 
+              className="form-control" 
+              value={text}
+              onChange={handleTextChange}
+              onPaste={handlePaste}
+              maxLength="5000" 
+              required 
+              placeholder="Enter or paste your text here..."
+            />
+            <div className="char-counter">
+              <span>{text.length}</span>/5000
             </div>
           </div>
+
+          {/* Ячейка 4: Поле перевода */}
+          <div className="grid-cell output-cell">
+            <div className="result-box">
+              {translatedText}
+            </div>
+          </div>
+        </div>
+
+        {/* Определенный язык */}
+        <div className="detected-language">
+          {detectedLanguage}
         </div>
       </form>
 

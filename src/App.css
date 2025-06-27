@@ -202,6 +202,27 @@ body {
     margin-bottom: 1rem;
 }
 
+/* Специальные стили для кнопок языка в Translation */
+.tool-form .language-selector {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.tool-form .language-buttons {
+    gap: 0.25rem;
+}
+
+.tool-form .lang-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* Контейнер для правого text-box с относительным позиционированием */
+.tool-form .text-boxes .text-box:last-child {
+    position: relative;
+}
+
 .text-box .controls {
     margin-bottom: 1rem;
 }
@@ -334,4 +355,113 @@ body {
 
 .result-container {
     position: relative;
+}
+
+/* CSS Grid для компонента Translation */
+.translation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.grid-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.model-cell {
+    align-items: flex-start;
+}
+
+.language-cell {
+    align-items: flex-start;
+}
+
+.input-cell {
+    min-height: 200px;
+}
+
+.output-cell {
+    min-height: 200px;
+}
+
+/* Стили для текстовых полей */
+.input-cell textarea,
+.output-cell .result-box {
+    min-height: 200px;
+    height: 200px;
+    resize: none;
+}
+
+/* Стили для кнопок языка в grid */
+.language-selector {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.language-buttons {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.lang-btn {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.lang-btn:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.lang-btn.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+/* Определенный язык */
+.detected-language {
+    font-style: italic;
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+/* CSS Grid для компонента GrammarCorrection */
+.grammar-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Отступ для верхних ячеек в GrammarCorrection */
+.grammar-grid .model-cell,
+.grammar-grid .empty-cell {
+    margin-bottom: 1.5rem;
+}
+
+/* Стили для текстовых полей в GrammarCorrection */
+.grammar-grid .input-cell textarea,
+.grammar-grid .output-cell .result-textarea {
+    min-height: 200px;
+    height: 200px;
+    resize: none;
+}
+
+/* Пустая ячейка для симметрии */
+.empty-cell {
+    display: flex;
+    align-items: flex-start;
 }
