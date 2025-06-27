@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import './GrammarCorrection.css';
 
 const GrammarCorrection = () => {
@@ -8,33 +8,48 @@ const GrammarCorrection = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [processingIndicator, setProcessingIndicator] = useState(false);
+  
+  // Ref для хранения текущего запроса, чтобы его можно было отменить
+  const currentRequestRef = useRef(null);
+  // Ref для хранения debounce timeout
+  const debounceTimeoutRef = useRef(null);
+  // Refs для доступа к актуальным значениям в debounced функции
+  const textRef = useRef(text);
+  const modelRef = useRef(model);
 
-  // Debounce function
-  const debounce = useCallback((func, wait) => {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }, []);
+  // Обновляем refs при изменении значений
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
+
+  useEffect(() => {
+    modelRef.current = model;
+  }, [model]);
 
   // Process text function for grammar correction
   const processGrammarText = async () => {
-    const trimmedText = text.trim();
+    const trimmedText = textRef.current.trim();
     if (!trimmedText || trimmedText.length < 3) {
       setCorrectedText('');
+      setProcessingIndicator(false);
       return;
+    }
+
+    // Отменяем предыдущий запрос, если он еще выполняется
+    if (currentRequestRef.current) {
+      currentRequestRef.current.abort();
     }
 
     setLoading(true);
     setError('');
     setCorrectedText('');
+    setProcessingIndicator(false);
 
     try {
+      // Создаем AbortController для возможности отмены запроса
+      const abortController = new AbortController();
+      currentRequestRef.current = abortController;
+
       const response = await fetch('http://localhost:8080/api/grammar/correct', {
         method: 'POST',
         headers: {
@@ -42,9 +57,15 @@ const GrammarCorrection = () => {
         },
         body: JSON.stringify({ 
           text: trimmedText,
-          model
-        })
+          model: modelRef.current
+        }),
+        signal: abortController.signal
       });
+
+      // Проверяем, не был ли запрос отменен
+      if (abortController.signal.aborted) {
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
@@ -53,23 +74,32 @@ const GrammarCorrection = () => {
       const data = await response.json();
       setCorrectedText(data.correctedText);
     } catch (error) {
+      // Игнорируем ошибку отмены запроса
+      if (error.name === 'AbortError') {
+        return;
+      }
       setError('An error occurred while processing your request. Please try again later.');
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      currentRequestRef.current = null;
     }
   };
 
-  // Create debounced version of the process function
-  const debouncedGrammarProcess = useCallback(
-    debounce(() => {
-      setProcessingIndicator(false);
+  // Create debounced version of the process function (1.5 seconds)
+  const debouncedGrammarProcess = useCallback(() => {
+    // Очищаем предыдущий timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      debounceTimeoutRef.current = null;
       processGrammarText();
-    }, 1500),
-    [text, model]
-  );
+    }, 1500);
+  }, []); // Убираем зависимости
 
-  // Handle text input
+  // Handle text input (typing)
   const handleTextChange = (e) => {
     const newText = e.target.value;
     setText(newText);
@@ -77,6 +107,11 @@ const GrammarCorrection = () => {
     if (newText.trim().length === 0) {
       setCorrectedText('');
       setProcessingIndicator(false);
+      // Очищаем debounce timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+        debounceTimeoutRef.current = null;
+      }
       return;
     }
     
@@ -86,22 +121,48 @@ const GrammarCorrection = () => {
     }
   };
 
-  // Handle model change
-  const handleModelChange = (e) => {
-    setModel(e.target.value);
-    if (text.trim().length >= 3) {
-      processGrammarText();
-    }
-  };
-
-  // Handle paste event
+  // Handle paste event (immediate processing)
   const handlePaste = () => {
+    // Очищаем debounce timeout, так как вставка должна обрабатываться сразу
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = null;
+    }
+    
+    // Небольшая задержка, чтобы текст успел вставиться
     setTimeout(() => {
-      if (text.trim()) {
+      if (textRef.current.trim()) {
         processGrammarText();
       }
     }, 100);
   };
+
+  // Handle model change
+  const handleModelChange = (e) => {
+    setModel(e.target.value);
+    if (textRef.current.trim().length >= 3) {
+      // Очищаем debounce timeout и сразу обрабатываем
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+        debounceTimeoutRef.current = null;
+      }
+      processGrammarText();
+    }
+  };
+
+  // Cleanup при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      // Отменяем текущий запрос при размонтировании
+      if (currentRequestRef.current) {
+        currentRequestRef.current.abort();
+      }
+      // Очищаем debounce timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="tool-form">
