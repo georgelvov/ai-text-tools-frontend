@@ -16,6 +16,8 @@ const GrammarCorrection = () => {
   // Refs для доступа к актуальным значениям в debounced функции
   const textRef = useRef(text);
   const modelRef = useRef(model);
+  // Флаг для отслеживания вставки текста
+  const isPastingRef = useRef(false);
 
   // Обновляем refs при изменении значений
   useEffect(() => {
@@ -104,6 +106,11 @@ const GrammarCorrection = () => {
     const newText = e.target.value;
     setText(newText);
     
+    // Если это вставка, не запускаем debounce
+    if (isPastingRef.current) {
+      return;
+    }
+    
     if (newText.trim().length === 0) {
       setCorrectedText('');
       setProcessingIndicator(false);
@@ -123,17 +130,22 @@ const GrammarCorrection = () => {
 
   // Handle paste event (immediate processing)
   const handlePaste = () => {
+    // Устанавливаем флаг вставки
+    isPastingRef.current = true;
+    
     // Очищаем debounce timeout, так как вставка должна обрабатываться сразу
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
       debounceTimeoutRef.current = null;
     }
     
-    // Небольшая задержка, чтобы текст успел вставиться
+    // Небольшая задержка, чтобы текст успел вставиться и onChange сработал
     setTimeout(() => {
       if (textRef.current.trim()) {
         processGrammarText();
       }
+      // Сбрасываем флаг вставки
+      isPastingRef.current = false;
     }, 100);
   };
 
