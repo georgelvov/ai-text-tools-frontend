@@ -30,10 +30,15 @@ body {
 
 .text-box {
     flex: 1;
-    padding: 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.05);
     position: relative;
+}
+
+/* Убираем padding, border-radius, box-shadow для text-box в GrammarCorrection */
+.tool-form .text-box {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
 }
 
 .text-box textarea {
@@ -60,8 +65,8 @@ body {
     min-height: 200px;
     color: #6c757d;
     border: 1px solid #dee2e6;
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
     justify-content: flex-start;
 }
 
@@ -222,7 +227,7 @@ body {
 .language-buttons {
     display: flex;
     gap: 0.5rem;
-  align-items: center;
+    align-items: center;
 }
 
 .lang-btn {
@@ -242,7 +247,7 @@ body {
 
 .lang-btn.active {
     background: #0d6efd;
-  color: white;
+    color: white;
     border-color: #0d6efd;
 }
 
@@ -271,7 +276,7 @@ body {
     display: none;
     list-style: none;
     margin: 0;
-  }
+}
 
 .dropdown-menu.show {
     display: block;
@@ -289,7 +294,7 @@ body {
 
 .dropdown-item:hover {
     background: #f8f9fa;
-  }
+}
 
 .arrow-down {
     font-size: 0.8rem;
