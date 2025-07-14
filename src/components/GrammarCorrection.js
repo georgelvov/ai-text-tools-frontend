@@ -8,7 +8,6 @@ const GrammarCorrection = () => {
   const [originalCorrectedText, setOriginalCorrectedText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [processingIndicator, setProcessingIndicator] = useState(false);
   
   // Ref для хранения текущего запроса, чтобы его можно было отменить
   const currentRequestRef = useRef(null);
@@ -34,7 +33,6 @@ const GrammarCorrection = () => {
     const trimmedText = textRef.current.trim();
     if (!trimmedText || trimmedText.length < 3) {
       setCorrectedText('');
-      setProcessingIndicator(false);
       return;
     }
 
@@ -46,7 +44,6 @@ const GrammarCorrection = () => {
     setLoading(true);
     setError('');
     setCorrectedText('');
-    setProcessingIndicator(false);
 
     try {
       // Создаем AbortController для возможности отмены запроса
@@ -117,7 +114,6 @@ const GrammarCorrection = () => {
     
     if (newText.trim().length === 0) {
       setCorrectedText('');
-      setProcessingIndicator(false);
       // Очищаем debounce timeout
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
@@ -127,7 +123,6 @@ const GrammarCorrection = () => {
     }
     
     if (newText.length >= 3) {
-      setProcessingIndicator(true);
       debouncedGrammarProcess();
     }
   };
