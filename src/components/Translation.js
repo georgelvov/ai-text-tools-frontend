@@ -52,7 +52,7 @@ const Translation = () => {
     setDetectedLanguage('');
 
     try {
-      const response = await fetch(`${process.env.API_URL}/api/translate`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/translate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
