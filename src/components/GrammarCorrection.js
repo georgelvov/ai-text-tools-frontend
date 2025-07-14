@@ -53,6 +53,8 @@ const GrammarCorrection = () => {
       const abortController = new AbortController();
       currentRequestRef.current = abortController;
 
+      console.log('Grammar Correction API URL: ' + `${process.env.API_URL}/api/grammar/correct`);
+
       const response = await fetch(`${process.env.API_URL}/api/grammar/correct`, {
         method: 'POST',
         headers: {
