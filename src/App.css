@@ -3,13 +3,11 @@ body {
     min-height: 100vh;
 }
 
-.App {
+main {
     min-height: 100vh;
     background-color: #f8f9fa;
-}
-
-.container {
     max-width: 1200px;
+    margin: 0 auto;
     padding: 2rem;
 }
 
