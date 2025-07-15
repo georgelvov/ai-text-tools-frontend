@@ -7,9 +7,7 @@ import {
   LanguageSelector 
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
-import { AI_MODELS } from '../constants/models';
 import { DEFAULT_LANGUAGE } from '../constants/languages';
-import './Translation.css';
 
 const Translation = () => {
   const [translatedText, setTranslatedText] = useState('');
@@ -113,19 +111,7 @@ const Translation = () => {
                   value={translatedText}
                   readOnly
                   placeholder="Translated text will appear here..."
-                  className="form-control result-textarea"
-                  style={{ 
-                    background: 'transparent', 
-                    color: '#6c757d',
-                    border: 'none',
-                    padding: '0',
-                    resize: 'none',
-                    minHeight: '300px',
-                    height: '300px',
-                    boxShadow: 'none',
-                    outline: 'none',
-                    opacity: text.trim() && !loading ? 1 : 0.6
-                  }}
+                  className={`form-control result-textarea result-textarea-translation ${text.trim() && !loading ? 'filled' : 'empty'}`}
                 />
               )}
             </div>

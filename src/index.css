@@ -5,9 +5,556 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+main {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.tool-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.text-boxes {
+    display: flex;
+    gap: 2rem;
+    margin-top: 0.5rem;
+}
+
+.text-box {
+    flex: 1;
+    position: relative;
+}
+
+/* Убираем padding, border-radius, box-shadow для text-box в GrammarCorrection */
+.tool-form .text-box {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.text-box textarea {
+    border: 1px solid #dee2e6;
+    resize: none;
+    width: 100%;
+    min-height: 200px;
+    background: transparent;
+    border-radius: 5px;
+    padding: 1rem;
+}
+
+.text-box textarea:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.result-box {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-top: 0;
+    white-space: pre-wrap;
+    min-height: 200px;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.result-box:empty::before {
+    content: attr(placeholder);
+    color: #adb5bd;
+}
+
+.result-box .processing-indicator {
+    display: block;
+    min-height: 1.2em;
+    margin-bottom: 0.5rem;
+}
+
+.char-counter {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-align: right;
+    margin-top: 0.5rem;
+}
+
+.loading {
+    display: block;
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.9);
+    padding: 1rem;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+}
+
+.error-message {
+    display: block;
+    color: #dc3545;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 5px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+.detected-language {
+    font-style: italic;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.detected-language {
+    font-style: italic;
+    color: #6c757d;
+    margin-left: auto;
+    font-size: 0.9rem;
+}
+
+.nav-tabs {
+    margin-bottom: 2rem;
+}
+
+.controls {
+    margin-bottom: 1rem;
+}
+
+.controls-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.controls-row > .model-container {
+    flex: 0 0 auto !important;
+}
+
+.controls-row > .detected-language {
+    font-style: italic;
+    color: #6c757d;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.box-title {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.processing-indicator {
+    display: block;
+    font-size: 0.8rem;
+    color: #0d6efd;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.model-select {
+    width: auto;
+    min-width: 150px;
+    font-size: 0.9rem;
+    padding: 0.25rem 0.5rem;
+    height: auto;
+    background-position: right 0.5rem center;
+}
+
+.model-container {
+    flex: 0 0 auto !important;
+}
+
+.language-selector {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+}
+
+.language-selector {
+    margin-bottom: 1rem;
+}
+
+/* Специальные стили для кнопок языка в Translation */
+.tool-form .language-selector {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.tool-form .language-buttons {
+    gap: 0.25rem;
+}
+
+.tool-form .lang-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* Контейнер для правого text-box с относительным позиционированием */
+.tool-form .text-boxes .text-box:last-child {
+    position: relative;
+}
+
+.text-box .controls {
+    margin-bottom: 1rem;
+}
+
+.text-box .controls-row {
+    margin-bottom: 0;
+}
+
+.text-box-section {
+    flex: 1;
+}
+
+.text-box-section .controls {
+    margin-bottom: 1rem;
+}
+
+.text-box-section .text-box {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+}
+
+.language-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.lang-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.lang-btn:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.lang-btn.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    min-width: 120px;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 0.5rem 0;
+    margin-top: 0.25rem;
+    display: none;
+    list-style: none;
+    margin: 0;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+}
+
+.arrow-down {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.result-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.reset-btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #dee2e6;
+}
+
+.reset-btn:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.result-container {
+    position: relative;
+}
+
+/* CSS Grid для компонента Translation */
+.translation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.grid-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.model-cell {
+    align-items: flex-start;
+}
+
+.language-cell {
+    align-items: flex-start;
+}
+
+.input-cell {
+    min-height: 200px;
+}
+
+.output-cell {
+    min-height: 200px;
+}
+
+/* Стили для текстовых полей */
+.input-cell textarea,
+.output-cell .result-box {
+    min-height: 300px;
+    height: 300px;
+    resize: none;
+}
+
+/* Стили для кнопок языка в grid */
+.language-selector {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.language-buttons {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.lang-btn {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.lang-btn:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.lang-btn.active {
+    background: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+/* Определенный язык */
+.detected-language {
+    font-style: italic;
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+/* CSS Grid для компонента GrammarCorrection */
+.grammar-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Отступ для верхних ячеек в GrammarCorrection */
+.grammar-grid .model-cell,
+.grammar-grid .empty-cell {
+    margin-bottom: 1.5rem;
+}
+
+/* Стили для текстовых полей в GrammarCorrection */
+.grammar-grid .input-cell textarea,
+.grammar-grid .output-cell .result-textarea {
+    min-height: 300px;
+    height: 300px;
+    resize: none;
+}
+
+/* Пустая ячейка для симметрии */
+.empty-cell {
+    display: flex;
+    align-items: flex-start;
+}
+
+/* Анимация для трех точек загрузки */
+.loading-dots {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 16px;
+  color: #6c757d;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.loading-dots span {
+  animation: loadingDots 1.4s infinite ease-in-out;
+  font-weight: bold;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.loading-dots span:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes loadingDots {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Оверлей для точек загрузки в GrammarCorrection */
+.loading-dots-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10;
+}
+
+/* GrammarCorrection specific styles */
+.result-textarea-grammar {
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    min-height: 300px !important;
+    resize: none !important;
+}
+
+.result-textarea-grammar.empty {
+    opacity: 0.6;
+}
+
+.result-textarea-grammar.filled {
+    opacity: 1;
+}
+
+/* Translation specific styles */
+.result-textarea-translation {
+    background: transparent !important;
+    color: #6c757d !important;
+    border: none !important;
+    padding: 0 !important;
+    resize: none !important;
+    min-height: 300px !important;
+    height: 300px !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.result-textarea-translation.empty {
+    opacity: 0.6;
+}
+
+.result-textarea-translation.filled {
+    opacity: 1;
 }

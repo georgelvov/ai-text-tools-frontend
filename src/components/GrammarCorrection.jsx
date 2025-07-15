@@ -6,8 +6,6 @@ import {
   ErrorMessage 
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
-import { AI_MODELS } from '../constants/models';
-import './GrammarCorrection.css';
 
 const GrammarCorrection = () => {
   const [correctedText, setCorrectedText] = useState('');
@@ -94,14 +92,7 @@ const GrammarCorrection = () => {
                 onChange={handleCorrectedTextChange}
                 readOnly={!text.trim() || loading}
                 placeholder={loading ? '' : "Corrected text will appear here..."}
-                className="form-control result-textarea"
-                style={{ 
-                  background: '#f8f9fa', 
-                  color: '#6c757d',
-                  minHeight: '300px',
-                  resize: 'none',
-                  opacity: text.trim() && !loading ? 1 : 0.6
-                }}
+                className={`form-control result-textarea result-textarea-grammar ${text.trim() && !loading ? 'filled' : 'empty'}`}
               />
               {loading && (
                 <div className="loading-dots-overlay">
