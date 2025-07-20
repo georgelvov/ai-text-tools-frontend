@@ -5,7 +5,8 @@ import {
   LoadingDots, 
   ErrorMessage,
   LanguageSelector,
-  CopyButton
+  CopyButton,
+  ClearButton
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 import { DEFAULT_LANGUAGE } from '../constants/languages';
@@ -49,7 +50,7 @@ const Translation = () => {
   }, [model, selectedLanguage, makeRequest]);
 
   // Используем custom hook для обработки текста
-  const { text, handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(processTranslateText);
+  const { text, handleTextChange, handlePaste, cancelDebounce, setText } = useTextProcessing(processTranslateText);
 
   // Эффект для очистки результата когда текст пустой
   useEffect(() => {
@@ -78,6 +79,11 @@ const Translation = () => {
       cancelDebounce();
       processTranslateText(text);
     }
+  };
+
+  // Обработчик очистки текста
+  const handleClearText = () => {
+    setText('');
   };
 
   return (
@@ -113,6 +119,12 @@ const Translation = () => {
                 text={text}
                 className="copy-btn-input"
                 title="Copy input text"
+              />
+              <ClearButton 
+                text={text}
+                onClear={handleClearText}
+                className="clear-btn-input"
+                title="Clear input text"
               />
             </div>
           </div>

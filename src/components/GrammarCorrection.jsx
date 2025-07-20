@@ -4,7 +4,8 @@ import {
   TextArea, 
   LoadingDots, 
   ErrorMessage,
-  CopyButton
+  CopyButton,
+  ClearButton
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 
@@ -36,7 +37,7 @@ const GrammarCorrection = () => {
   }, [model, makeRequest]);
 
   // Используем custom hook для обработки текста
-  const { text, handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(processGrammarText);
+  const { text, handleTextChange, handlePaste, cancelDebounce, setText } = useTextProcessing(processGrammarText);
 
   // Эффект для очистки результата когда текст пустой
   useEffect(() => {
@@ -58,6 +59,11 @@ const GrammarCorrection = () => {
   // Обработчик изменения исправленного текста
   const handleCorrectedTextChange = (e) => {
     setCorrectedText(e.target.value);
+  };
+
+  // Обработчик очистки текста
+  const handleClearText = () => {
+    setText('');
   };
 
   return (
@@ -88,6 +94,12 @@ const GrammarCorrection = () => {
                 text={text}
                 className="copy-btn-input"
                 title="Copy input text"
+              />
+              <ClearButton 
+                text={text}
+                onClear={handleClearText}
+                className="clear-btn-input"
+                title="Clear input text"
               />
             </div>
           </div>
