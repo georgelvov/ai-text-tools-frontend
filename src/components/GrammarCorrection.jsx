@@ -1,15 +1,15 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { 
   ModelSelector, 
   TextArea, 
   LoadingDots, 
-  ErrorMessage 
+  ErrorMessage,
+  CopyButton
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 
 const GrammarCorrection = () => {
   const [correctedText, setCorrectedText] = useState('');
-  const [originalCorrectedText, setOriginalCorrectedText] = useState('');
   
   const { makeRequest, loading, error } = useApiRequest();
   const { model, handleModelChange } = useModelState();
@@ -32,12 +32,18 @@ const GrammarCorrection = () => {
 
     if (data) {
       setCorrectedText(data.correctedText);
-      setOriginalCorrectedText(data.correctedText);
     }
   }, [model, makeRequest]);
 
   // Используем custom hook для обработки текста
   const { text, handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(processGrammarText);
+
+  // Эффект для очистки результата когда текст пустой
+  useEffect(() => {
+    if (!text || text.trim().length === 0) {
+      setCorrectedText('');
+    }
+  }, [text]);
 
   // Обработчик изменения модели с немедленной обработкой
   const handleModelChangeWithProcessing = (e) => {
@@ -52,11 +58,6 @@ const GrammarCorrection = () => {
   // Обработчик изменения исправленного текста
   const handleCorrectedTextChange = (e) => {
     setCorrectedText(e.target.value);
-  };
-
-  // Сброс к оригинальному исправленному тексту
-  const handleResetToOriginal = () => {
-    setCorrectedText(originalCorrectedText);
   };
 
   return (
@@ -76,12 +77,19 @@ const GrammarCorrection = () => {
 
           {/* Ячейка 3: Поле ввода текста */}
           <div className="grid-cell input-cell">
-            <TextArea 
-              value={text}
-              onChange={handleTextChange}
-              onPaste={handlePaste}
-              placeholder="Enter or paste your text here..."
-            />
+            <div className="input-container">
+              <TextArea 
+                value={text}
+                onChange={handleTextChange}
+                onPaste={handlePaste}
+                placeholder="Enter or paste your text here..."
+              />
+              <CopyButton 
+                text={text}
+                className="copy-btn-input"
+                title="Copy input text"
+              />
+            </div>
           </div>
 
           {/* Ячейка 4: Поле с исправленным текстом */}
@@ -99,16 +107,11 @@ const GrammarCorrection = () => {
                   <LoadingDots />
                 </div>
               )}
-              {correctedText !== originalCorrectedText && originalCorrectedText && correctedText.trim() !== '' && text.trim() !== '' && !loading && (
-                <button 
-                  type="button" 
-                  className="btn btn-sm btn-outline-secondary reset-btn"
-                  onClick={handleResetToOriginal}
-                  title="Show original correction"
-                >
-                  Show original
-                </button>
-              )}
+              <CopyButton 
+                text={correctedText}
+                className="copy-btn-output"
+                title="Copy corrected text"
+              />
             </div>
           </div>
         </div>

@@ -4,7 +4,8 @@ import {
   TextArea, 
   LoadingDots, 
   ErrorMessage,
-  LanguageSelector 
+  LanguageSelector,
+  CopyButton
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 import { DEFAULT_LANGUAGE } from '../constants/languages';
@@ -50,6 +51,14 @@ const Translation = () => {
   // Используем custom hook для обработки текста
   const { text, handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(processTranslateText);
 
+  // Эффект для очистки результата когда текст пустой
+  useEffect(() => {
+    if (!text || text.trim().length === 0) {
+      setTranslatedText('');
+      setDetectedLanguage('');
+    }
+  }, [text]);
+
   // Обработчик изменения модели с немедленной обработкой
   const handleModelChangeWithProcessing = (e) => {
     handleModelChange(e);
@@ -93,12 +102,19 @@ const Translation = () => {
 
           {/* Ячейка 3: Поле ввода текста */}
           <div className="grid-cell input-cell">
-            <TextArea 
-              value={text}
-              onChange={handleTextChange}
-              onPaste={handlePaste}
-              placeholder="Enter or paste your text here..."
-            />
+            <div className="input-container">
+              <TextArea 
+                value={text}
+                onChange={handleTextChange}
+                onPaste={handlePaste}
+                placeholder="Enter or paste your text here..."
+              />
+              <CopyButton 
+                text={text}
+                className="copy-btn-input"
+                title="Copy input text"
+              />
+            </div>
           </div>
 
           {/* Ячейка 4: Поле перевода */}
@@ -107,12 +123,19 @@ const Translation = () => {
               {loading ? (
                 <LoadingDots />
               ) : (
-                <TextArea 
-                  value={translatedText}
-                  readOnly
-                  placeholder="Translated text will appear here..."
-                  className={`form-control result-textarea result-textarea-translation ${text.trim() && !loading ? 'filled' : 'empty'}`}
-                />
+                <div className="result-container">
+                  <TextArea 
+                    value={translatedText}
+                    readOnly
+                    placeholder="Translated text will appear here..."
+                    className={`form-control result-textarea result-textarea-translation ${text.trim() && !loading ? 'filled' : 'empty'}`}
+                  />
+                  <CopyButton 
+                    text={translatedText}
+                    className="copy-btn-output"
+                    title="Copy translated text"
+                  />
+                </div>
               )}
             </div>
           </div>
