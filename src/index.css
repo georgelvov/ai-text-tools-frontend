@@ -396,7 +396,12 @@ main {
     min-height: 200px;
 }
 
-.input-container textarea,
+/* Отступы для полей ввода (есть кнопки Copy и Clear) */
+.input-container textarea {
+    padding-right: 110px !important;
+}
+
+/* Отступы для полей результата (только кнопка Copy) */
 .result-container textarea {
     padding-right: 90px !important;
 }
