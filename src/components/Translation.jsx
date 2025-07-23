@@ -49,7 +49,7 @@ const Translation = ({
     });
 
     if (data) {
-      setDetectedLanguage(`Detected language: ${data.detectedLanguage}`);
+      setDetectedLanguage(`Language: ${data.detectedLanguage}`);
       setTranslatedText(data.translatedText);
     }
   }, [model, selectedLanguage, makeRequest, setTranslatedText, setDetectedLanguage]);
@@ -101,7 +101,7 @@ const Translation = ({
         });
 
         if (data) {
-          setDetectedLanguage(`Detected language: ${data.detectedLanguage}`);
+          setDetectedLanguage(`Language: ${data.detectedLanguage}`);
           setTranslatedText(data.translatedText);
         }
       };
@@ -125,6 +125,12 @@ const Translation = ({
               value={model}
               onChange={handleModelChangeWithProcessing}
             />
+            {/* Определенный язык */}
+            {detectedLanguage && (
+              <div className="detected-language">
+                {detectedLanguage}
+              </div>
+            )}
           </div>
 
           {/* Ячейка 2: Выбор языка */}
@@ -181,12 +187,6 @@ const Translation = ({
           </div>
         </div>
 
-        {/* Определенный язык */}
-        {detectedLanguage && (
-          <div className="detected-language">
-            {detectedLanguage}
-          </div>
-        )}
       </form>
 
       <ErrorMessage error={error} />

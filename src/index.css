@@ -194,6 +194,7 @@ main {
     padding: 0.25rem 0.5rem;
     height: auto;
     background-position: right 0.5rem center;
+    line-height: 1.5;
 }
 
 .model-container {
@@ -382,6 +383,7 @@ main {
 
 .model-cell {
     align-items: flex-start;
+    position: relative;
 }
 
 .language-cell {
@@ -449,11 +451,14 @@ main {
 
 /* Определенный язык */
 .detected-language {
-    font-style: italic;
     color: #6c757d;
     font-size: 0.9rem;
-    text-align: center;
-    margin-top: 0.5rem;
+    position: absolute;
+    top: 6px;
+    right: 130px;
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
 }
 
 /* CSS Grid для компонента GrammarCorrection */
@@ -676,6 +681,7 @@ main {
     cursor: pointer;
     font-size: 0.8rem;
     transition: all 0.2s;
+    line-height: 1.5;
 }
 
 .lang-btn:hover {
