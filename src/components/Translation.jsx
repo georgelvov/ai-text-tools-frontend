@@ -9,7 +9,7 @@ import {
   ClearButton
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
-import { DEFAULT_LANGUAGE } from '../constants/languages';
+import { DEFAULT_TARGET_LANGUAGE } from '../constants/languages';
 
 const Translation = ({ 
   text, 
@@ -19,7 +19,7 @@ const Translation = ({
   detectedLanguage, 
   setDetectedLanguage 
 }) => {
-  const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_LANGUAGE);
+  const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_TARGET_LANGUAGE);
   
   const { makeRequest, loading, error } = useApiRequest();
   const { model, handleModelChange } = useModelState();
@@ -76,13 +76,37 @@ const Translation = ({
   };
 
   // Обработчик выбора языка с немедленной обработкой
-  const handleLanguageSelectWithProcessing = (language) => {
-    setSelectedLanguage(language);
-    selectedLanguageRef.current = language;
+  const handleLanguageSelectWithProcessing = (lang) => {
+    setSelectedLanguage(lang);
+    selectedLanguageRef.current = lang; // Обновляем ref немедленно
     
     if (text.trim().length >= 3) {
       cancelDebounce();
-      processTranslateText(text);
+      // Создаем новую функцию с актуальным языком
+      const processWithNewLanguage = async (inputText) => {
+        const trimmedText = inputText.trim();
+        if (!trimmedText || trimmedText.length < 3) {
+          setTranslatedText('');
+          setDetectedLanguage('');
+          return;
+        }
+
+        const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/translate`, {
+          method: 'POST',
+          body: JSON.stringify({ 
+            text: trimmedText,
+            model: model,
+            targetLanguage: lang
+          }),
+        });
+
+        if (data) {
+          setDetectedLanguage(`Detected language: ${data.detectedLanguage}`);
+          setTranslatedText(data.translatedText);
+        }
+      };
+      
+      processWithNewLanguage(text);
     }
   };
 
@@ -103,7 +127,7 @@ const Translation = ({
             />
           </div>
 
-          {/* Ячейка 2: Пустая для симметрии */}
+          {/* Ячейка 2: Выбор языка */}
           <div className="grid-cell empty-cell">
             <LanguageSelector 
               selectedLanguage={selectedLanguage}
@@ -158,9 +182,11 @@ const Translation = ({
         </div>
 
         {/* Определенный язык */}
-        <div className="detected-language">
-          {detectedLanguage}
-        </div>
+        {detectedLanguage && (
+          <div className="detected-language">
+            {detectedLanguage}
+          </div>
+        )}
       </form>
 
       <ErrorMessage error={error} />
