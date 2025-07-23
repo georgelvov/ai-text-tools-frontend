@@ -473,6 +473,27 @@ main {
 .empty-cell {
     display: flex;
     align-items: flex-start;
+    margin: 0;
+    padding: 0;
+}
+
+/* Стили для LanguageSelector в пустой ячейке */
+.empty-cell .language-selector {
+    margin: 0;
+    padding: 0;
+    justify-content: flex-end;
+}
+
+.empty-cell .language-buttons {
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+}
+
+.empty-cell .lang-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    margin: 0;
 }
 
 /* Анимация для трех точек загрузки */
@@ -540,15 +561,16 @@ main {
 
 /* Translation specific styles */
 .result-textarea-translation {
-    background: transparent !important;
+    background: #f8f9fa !important;
     color: #6c757d !important;
-    border: none !important;
-    padding: 0 !important;
+    border: 1px solid #dee2e6 !important;
+    padding: 1rem !important;
     resize: none !important;
     min-height: 300px !important;
     height: 300px !important;
     box-shadow: none !important;
     outline: none !important;
+    border-radius: 5px !important;
 }
 
 .result-textarea-translation.empty {

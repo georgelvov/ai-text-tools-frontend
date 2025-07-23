@@ -89,7 +89,7 @@ const Translation = () => {
   return (
     <div className="tool-form">
       <form>
-        <div className="translation-grid">
+        <div className="grammar-grid">
           {/* Ячейка 1: Выбор модели */}
           <div className="grid-cell model-cell">
             <ModelSelector 
@@ -98,8 +98,8 @@ const Translation = () => {
             />
           </div>
 
-          {/* Ячейка 2: Кнопки выбора языка */}
-          <div className="grid-cell language-cell">
+          {/* Ячейка 2: Пустая для симметрии */}
+          <div className="grid-cell empty-cell">
             <LanguageSelector 
               selectedLanguage={selectedLanguage}
               onLanguageSelect={handleLanguageSelectWithProcessing}
@@ -129,26 +129,25 @@ const Translation = () => {
             </div>
           </div>
 
-          {/* Ячейка 4: Поле перевода */}
+          {/* Ячейка 4: Поле с переведенным текстом */}
           <div className="grid-cell output-cell">
-            <div className="result-box">
-              {loading ? (
-                <LoadingDots />
-              ) : (
-                <div className="result-container">
-                  <TextArea 
-                    value={translatedText}
-                    readOnly
-                    placeholder="Translated text will appear here..."
-                    className={`form-control result-textarea result-textarea-translation ${text.trim() && !loading ? 'filled' : 'empty'}`}
-                  />
-                  <CopyButton 
-                    text={translatedText}
-                    className="copy-btn-output"
-                    title="Copy translated text"
-                  />
+            <div className="result-container">
+              <TextArea 
+                value={loading ? '' : translatedText}
+                readOnly
+                placeholder={loading ? '' : "Translated text will appear here..."}
+                className={`form-control result-textarea result-textarea-grammar ${text.trim() && !loading ? 'filled' : 'empty'}`}
+              />
+              {loading && (
+                <div className="loading-dots-overlay">
+                  <LoadingDots />
                 </div>
               )}
+              <CopyButton 
+                text={translatedText}
+                className="copy-btn-output"
+                title="Copy translated text"
+              />
             </div>
           </div>
         </div>
