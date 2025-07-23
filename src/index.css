@@ -396,6 +396,11 @@ main {
     min-height: 200px;
 }
 
+.input-container textarea,
+.result-container textarea {
+    padding-right: 90px !important;
+}
+
 /* Стили для текстовых полей */
 .input-cell textarea,
 .output-cell .result-box {
