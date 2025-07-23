@@ -1,8 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { useDebounce } from './useDebounce';
 
-export const useTextProcessing = (processFunction = null, minLength = 3) => {
-  const [text, setText] = useState('');
+export const useTextProcessing = (processFunction = null, text = '', setText = null, minLength = 3) => {
   const isPastingRef = useRef(false);
   const textRef = useRef(text);
   const processFunctionRef = useRef(processFunction);
@@ -12,21 +11,21 @@ export const useTextProcessing = (processFunction = null, minLength = 3) => {
     processFunctionRef.current = processFunction;
   }, [processFunction]);
 
+  // Обновляем ref при изменении текста
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
+
   const { debouncedCallback, cancelDebounce } = useDebounce(() => {
     if (processFunctionRef.current) {
       processFunctionRef.current(textRef.current);
     }
   });
 
-  // Обновляем ref при изменении текста
-  const updateText = useCallback((newText) => {
-    setText(newText);
-    textRef.current = newText;
-  }, []);
-
   const handleTextChange = useCallback((e) => {
     const newText = e.target.value;
-    updateText(newText);
+    setText(newText);
+    textRef.current = newText;
     
     // Если это вставка, не запускаем debounce
     if (isPastingRef.current) {
@@ -41,7 +40,7 @@ export const useTextProcessing = (processFunction = null, minLength = 3) => {
     if (newText.length >= minLength && processFunctionRef.current) {
       debouncedCallback();
     }
-  }, [debouncedCallback, cancelDebounce, minLength, updateText]);
+  }, [debouncedCallback, cancelDebounce, minLength, setText]);
 
   const handlePaste = useCallback(() => {
     // Устанавливаем флаг вставки
@@ -61,8 +60,6 @@ export const useTextProcessing = (processFunction = null, minLength = 3) => {
   }, [cancelDebounce]);
 
   return {
-    text,
-    setText: updateText,
     handleTextChange,
     handlePaste,
     cancelDebounce,

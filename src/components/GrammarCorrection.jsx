@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { 
   ModelSelector, 
   TextArea, 
@@ -9,9 +9,7 @@ import {
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 
-const GrammarCorrection = () => {
-  const [correctedText, setCorrectedText] = useState('');
-  
+const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) => {
   const { makeRequest, loading, error } = useApiRequest();
   const { model, handleModelChange } = useModelState();
 
@@ -34,17 +32,17 @@ const GrammarCorrection = () => {
     if (data) {
       setCorrectedText(data.correctedText);
     }
-  }, [model, makeRequest]);
+  }, [model, makeRequest, setCorrectedText]);
 
   // Используем custom hook для обработки текста
-  const { text, handleTextChange, handlePaste, cancelDebounce, setText } = useTextProcessing(processGrammarText);
+  const { handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(processGrammarText, text, setText);
 
   // Эффект для очистки результата когда текст пустой
   useEffect(() => {
     if (!text || text.trim().length === 0) {
       setCorrectedText('');
     }
-  }, [text]);
+  }, [text, setCorrectedText]);
 
   // Обработчик изменения модели с немедленной обработкой
   const handleModelChangeWithProcessing = (e) => {

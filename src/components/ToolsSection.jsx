@@ -4,6 +4,15 @@ import Translation from './Translation';
 
 const ToolsSection = () => {
   const [activeTab, setActiveTab] = useState('grammar');
+  
+  // Состояния для GrammarCorrection
+  const [grammarText, setGrammarText] = useState('');
+  const [correctedText, setCorrectedText] = useState('');
+  
+  // Состояния для Translation
+  const [translationText, setTranslationText] = useState('');
+  const [translatedText, setTranslatedText] = useState('');
+  const [detectedLanguage, setDetectedLanguage] = useState('');
 
   const tabs = [
     { id: 'grammar', label: 'Grammar Correction' },
@@ -13,11 +22,34 @@ const ToolsSection = () => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'grammar':
-        return <GrammarCorrection />;
+        return (
+          <GrammarCorrection 
+            text={grammarText}
+            setText={setGrammarText}
+            correctedText={correctedText}
+            setCorrectedText={setCorrectedText}
+          />
+        );
       case 'translate':
-        return <Translation />;
+        return (
+          <Translation 
+            text={translationText}
+            setText={setTranslationText}
+            translatedText={translatedText}
+            setTranslatedText={setTranslatedText}
+            detectedLanguage={detectedLanguage}
+            setDetectedLanguage={setDetectedLanguage}
+          />
+        );
       default:
-        return <GrammarCorrection />;
+        return (
+          <GrammarCorrection 
+            text={grammarText}
+            setText={setGrammarText}
+            correctedText={correctedText}
+            setCorrectedText={setCorrectedText}
+          />
+        );
     }
   };
 

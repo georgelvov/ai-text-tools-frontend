@@ -11,9 +11,14 @@ import {
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 import { DEFAULT_LANGUAGE } from '../constants/languages';
 
-const Translation = () => {
-  const [translatedText, setTranslatedText] = useState('');
-  const [detectedLanguage, setDetectedLanguage] = useState('');
+const Translation = ({ 
+  text, 
+  setText, 
+  translatedText, 
+  setTranslatedText, 
+  detectedLanguage, 
+  setDetectedLanguage 
+}) => {
   const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_LANGUAGE);
   
   const { makeRequest, loading, error } = useApiRequest();
@@ -47,10 +52,10 @@ const Translation = () => {
       setDetectedLanguage(`Detected language: ${data.detectedLanguage}`);
       setTranslatedText(data.translatedText);
     }
-  }, [model, selectedLanguage, makeRequest]);
+  }, [model, selectedLanguage, makeRequest, setTranslatedText, setDetectedLanguage]);
 
   // Используем custom hook для обработки текста
-  const { text, handleTextChange, handlePaste, cancelDebounce, setText } = useTextProcessing(processTranslateText);
+  const { handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(processTranslateText, text, setText);
 
   // Эффект для очистки результата когда текст пустой
   useEffect(() => {
@@ -58,7 +63,7 @@ const Translation = () => {
       setTranslatedText('');
       setDetectedLanguage('');
     }
-  }, [text]);
+  }, [text, setTranslatedText, setDetectedLanguage]);
 
   // Обработчик изменения модели с немедленной обработкой
   const handleModelChangeWithProcessing = (e) => {
