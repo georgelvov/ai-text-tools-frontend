@@ -4,4 +4,5 @@ export { default as LoadingDots } from './LoadingDots';
 export { default as ErrorMessage } from './ErrorMessage';
 export { default as LanguageSelector } from './LanguageSelector';
 export { default as CopyButton } from './CopyButton';
-export { default as ClearButton } from './ClearButton'; 
+export { default as ClearButton } from './ClearButton';
+export { default as StyleSelector } from './StyleSelector'; 

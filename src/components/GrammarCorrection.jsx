@@ -1,17 +1,49 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { 
   ModelSelector, 
   TextArea, 
   LoadingDots, 
   ErrorMessage,
   CopyButton,
-  ClearButton
+  ClearButton,
+  StyleSelector
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 
 const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) => {
   const { makeRequest, loading, error } = useApiRequest();
   const { model, handleModelChange } = useModelState();
+
+  // Обработчик выбора стиля коррекции
+  const handleStyleSelect = (style) => {
+    // Если есть текст, перезапускаем обработку с новым стилем
+    if (text.trim().length >= 3) {
+      cancelDebounce();
+      processGrammarTextWithStyle(text, style);
+    }
+  };
+
+  // Функция обработки грамматики с конкретным стилем
+  const processGrammarTextWithStyle = useCallback(async (inputText, style) => {
+    const trimmedText = inputText.trim();
+    if (!trimmedText || trimmedText.length < 3) {
+      setCorrectedText('');
+      return;
+    }
+
+    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/grammar/correct`, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        text: trimmedText,
+        model: model,
+        style: style
+      }),
+    });
+
+    if (data) {
+      setCorrectedText(data.correctedText);
+    }
+  }, [model, makeRequest, setCorrectedText]);
 
   // Функция обработки грамматики с useCallback для стабильности
   const processGrammarText = useCallback(async (inputText) => {
@@ -68,7 +100,7 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     <div className="tool-form">
       <form>
         <div className="grammar-grid">
-          {/* Ячейка 1: Выбор модели */}
+          {/* Ячейка 1: Выбор модели для ввода */}
           <div className="grid-cell model-cell">
             <ModelSelector 
               value={model}
@@ -76,8 +108,12 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
             />
           </div>
 
-          {/* Ячейка 2: Пустая для симметрии */}
-          <div className="grid-cell empty-cell" />
+          {/* Ячейка 2: Выбор стиля коррекции */}
+          <div className="grid-cell empty-cell">
+            <StyleSelector 
+              onStyleSelect={handleStyleSelect}
+            />
+          </div>
 
           {/* Ячейка 3: Поле ввода текста */}
           <div className="grid-cell input-cell">
@@ -132,4 +168,4 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   );
 };
 
-export default GrammarCorrection; 
+export default GrammarCorrection;
