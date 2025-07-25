@@ -3,9 +3,11 @@ import React from 'react';
 const StyleSelector = ({ onStyleSelect, className = '' }) => {
   // Стили как кнопки
   const STYLES = [
-    { code: 'shorter', name: 'Shorter' },
-    { code: 'formal', name: 'Formal' },
+    { code: 'fix', name: 'Fix' },
+    { code: 'shorten', name: 'Shorten' },
     { code: 'enhance', name: 'Enhance' },
+    { code: 'formal', name: 'Formal' },
+    { code: 'casual', name: 'Casual' },
     { code: 'rephrase', name: 'Rephrase' }
   ];
 
@@ -33,4 +35,4 @@ const StyleSelector = ({ onStyleSelect, className = '' }) => {
   );
 };
 
-export default StyleSelector; 
+export default StyleSelector;

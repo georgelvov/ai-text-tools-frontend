@@ -39,7 +39,7 @@ const Translation = ({
       return;
     }
 
-    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/translate`, {
+    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/text/translate`, {
       method: 'POST',
       body: JSON.stringify({ 
         text: trimmedText,
@@ -91,7 +91,7 @@ const Translation = ({
           return;
         }
 
-        const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/translate`, {
+        const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/text/translate`, {
           method: 'POST',
           body: JSON.stringify({ 
             text: trimmedText,

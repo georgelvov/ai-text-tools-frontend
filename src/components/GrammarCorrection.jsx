@@ -31,12 +31,12 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
       return;
     }
 
-    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/grammar/correct`, {
+    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/text/modify`, {
       method: 'POST',
-      body: JSON.stringify({ 
+      body: JSON.stringify({
+        type: style,
         text: trimmedText,
-        model: model,
-        style: style
+        model: model
       }),
     });
 
@@ -53,9 +53,10 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
       return;
     }
 
-    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/grammar/correct`, {
+    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/text/modify`, {
       method: 'POST',
       body: JSON.stringify({ 
+        type: 'fix',
         text: trimmedText,
         model: model
       }),
