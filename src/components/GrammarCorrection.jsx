@@ -13,6 +13,7 @@ import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) => {
   const { makeRequest, loading, error } = useApiRequest();
   const { model, handleModelChange } = useModelState();
+  const [autofix, setAutofix] = useState(true); // По умолчанию включен
 
   // Обработчик выбора стиля коррекции
   const handleStyleSelect = (style) => {
@@ -21,6 +22,11 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
       cancelDebounce();
       processGrammarTextWithStyle(text, style);
     }
+  };
+
+  // Обработчик изменения чекбокса Autofix
+  const handleAutofixChange = (e) => {
+    setAutofix(e.target.checked);
   };
 
   // Функция обработки грамматики с конкретным стилем
@@ -67,8 +73,12 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     }
   }, [model, makeRequest, setCorrectedText]);
 
-  // Используем custom hook для обработки текста
-  const { handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(processGrammarText, text, setText);
+  // Используем custom hook для обработки текста с учетом autofix
+  const { handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(
+    autofix ? processGrammarText : null, // Передаем null если autofix выключен
+    text, 
+    setText
+  );
 
   // Эффект для очистки результата когда текст пустой
   useEffect(() => {
@@ -81,7 +91,8 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   const handleModelChangeWithProcessing = (e) => {
     handleModelChange(e);
     
-    if (text.trim().length >= 3) {
+    // Обрабатываем только если autofix включен
+    if (autofix && text.trim().length >= 3) {
       cancelDebounce();
       processGrammarText(text);
     }
@@ -107,6 +118,17 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
               value={model}
               onChange={handleModelChangeWithProcessing}
             />
+            {/* Чекбокс Autofix */}
+            <div className="autofix-checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={autofix}
+                  onChange={handleAutofixChange}
+                />
+                <span>Autofix</span>
+              </label>
+            </div>
           </div>
 
           {/* Ячейка 2: Выбор стиля коррекции */}
