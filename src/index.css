@@ -224,7 +224,7 @@ main {
 }
 
 .tool-form .lang-btn {
-    padding: 0.25rem 0.5rem;
+    padding: 0.35rem 1rem;
     font-size: 0.8rem;
 }
 
@@ -259,16 +259,6 @@ main {
     display: flex;
     gap: 0.5rem;
     align-items: center;
-}
-
-.lang-btn {
-    padding: 0.5rem 1rem;
-    border: 1px solid #ddd;
-    background: white;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s;
 }
 
 .lang-btn:hover {
@@ -451,16 +441,6 @@ main {
     display: flex;
     gap: 0.25rem;
     align-items: center;
-}
-
-.lang-btn {
-    padding: 0.25rem 0.5rem;
-    border: 1px solid #ddd;
-    background: white;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: all 0.2s;
 }
 
 .lang-btn:hover {
@@ -708,7 +688,7 @@ main {
 }
 
 .lang-btn {
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 0.75rem;
     border: 1px solid #ddd;
     background: white;
     border-radius: 20px;
