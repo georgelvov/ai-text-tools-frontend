@@ -30,7 +30,14 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
 
   // Обработчик изменения чекбокса Autofix
   const handleAutofixChange = (e) => {
-    setAutofix(e.target.checked);
+    const newAutofixValue = e.target.checked;
+    setAutofix(newAutofixValue);
+    
+    // Если включаем autofix и есть текст, выполняем коррекцию
+    if (newAutofixValue && text.trim().length >= 3) {
+      cancelDebounce();
+      processGrammarText(text);
+    }
   };
 
   // Функция добавления ответа в историю
