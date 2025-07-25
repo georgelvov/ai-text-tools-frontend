@@ -6,22 +6,33 @@ export const MAIN_LANGUAGES = [
 ];
 
 export const ADDITIONAL_LANGUAGES = [
-  { code: 'Spanish', name: 'Spanish' },
-  { code: 'French', name: 'French' },
-  { code: 'Italian', name: 'Italian' },
-  { code: 'Portuguese', name: 'Portuguese' },
-  { code: 'Dutch', name: 'Dutch' },
-  { code: 'Polish', name: 'Polish' },
-  { code: 'Ukrainian', name: 'Ukrainian' },
+  { code: 'Arabic', name: 'Arabic' },
+  { code: 'Bulgarian', name: 'Bulgarian' },
+  { code: 'Catalan', name: 'Catalan' },
   { code: 'Chinese', name: 'Chinese' },
+  { code: 'Croatian', name: 'Croatian' },
+  { code: 'Czech', name: 'Czech' },
+  { code: 'Dutch', name: 'Dutch' },
+  { code: 'Finnish', name: 'Finnish' },
+  { code: 'French', name: 'French' },
+  { code: 'Hindi', name: 'Hindi' },
+  { code: 'Hungarian', name: 'Hungarian' },
+  { code: 'Italian', name: 'Italian' },
   { code: 'Japanese', name: 'Japanese' },
   { code: 'Korean', name: 'Korean' },
-  { code: 'Arabic', name: 'Arabic' },
-  { code: 'Hindi', name: 'Hindi' },
-  { code: 'Turkish', name: 'Turkish' },
-  { code: 'Vietnamese', name: 'Vietnamese' },
+  { code: 'Latin', name: 'Latin' },
+  { code: 'Norwegian', name: 'Norwegian' },
+  { code: 'Polish', name: 'Polish' },
+  { code: 'Portuguese', name: 'Portuguese' },
+  { code: 'Serbian', name: 'Serbian' },
+  { code: 'Slovak', name: 'Slovak' },
+  { code: 'Spanish', name: 'Spanish' },
+  { code: 'Swedish', name: 'Swedish' },
   { code: 'Thai', name: 'Thai' },
-  { code: 'Czech', name: 'Czech' }
+  { code: 'Turkish', name: 'Turkish' },
+  { code: 'Ukrainian', name: 'Ukrainian' },
+  { code: 'Vietnamese', name: 'Vietnamese' }
 ];
+
 
 export const DEFAULT_TARGET_LANGUAGE = 'Russian'; 

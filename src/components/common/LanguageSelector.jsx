@@ -15,6 +15,23 @@ const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '', 
     .filter(lang => !currentButtons.some(btn => btn.code === lang.code))
     .sort((a, b) => a.name.localeCompare(b.name));
 
+  // Функция для разделения языков по столбцам
+  const createColumns = (languages) => {
+    const columns = 3;
+    const itemsPerColumn = Math.ceil(languages.length / columns);
+    const result = [];
+    
+    for (let i = 0; i < columns; i++) {
+      const startIndex = i * itemsPerColumn;
+      const endIndex = Math.min(startIndex + itemsPerColumn, languages.length);
+      result.push(languages.slice(startIndex, endIndex));
+    }
+    
+    return result;
+  };
+
+  const languageColumns = createColumns(dropdownLanguages);
+
   // Обработчик клика вне выпадающего списка
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -84,7 +101,7 @@ const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '', 
       </div>
 
       {/* Дополнительные языки в выпадающем списке */}
-      <div className="dropdown" ref={dropdownRef}>
+      <div className="dropdown language-dropdown" ref={dropdownRef}>
         <button
           type="button"
           className="dropdown-toggle language-select"
@@ -93,15 +110,21 @@ const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '', 
         </button>
         {isDropdownOpen && (
           <ul className="dropdown-menu show">
-            {dropdownLanguages.map(lang => (
-              <li key={lang.code}>
-                <button
-                  type="button"
-                  className="dropdown-item"
-                  onClick={() => handleDropdownSelect(lang.code)}
-                >
-                  {lang.name}
-                </button>
+            {languageColumns.map((column, columnIndex) => (
+              <li key={`column-${columnIndex}`} className="dropdown-column">
+                <ul className="dropdown-column-list">
+                  {column.map(lang => (
+                    <li key={lang.code}>
+                      <button
+                        type="button"
+                        className="dropdown-item"
+                        onClick={() => handleDropdownSelect(lang.code)}
+                      >
+                        {lang.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
           </ul>
