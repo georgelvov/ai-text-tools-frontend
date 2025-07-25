@@ -496,19 +496,28 @@ main {
 .empty-cell .language-selector {
     margin: 0;
     padding: 0;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .empty-cell .language-buttons {
+    display: flex;
     gap: 0.25rem;
-    margin: 0;
-    padding: 0;
+    align-items: center;
 }
 
-.empty-cell .lang-btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
-    margin: 0;
+.empty-cell .language-select {
+    flex: 0 0 auto;
+}
+
+.empty-cell .history-buttons {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+    margin-left: auto;
 }
 
 /* Анимация для трех точек загрузки */
@@ -711,7 +720,9 @@ main {
 .empty-cell .language-selector {
     margin: 0;
     padding: 0;
-    justify-content: flex-end;
+    justify-content: space-between;
+    width: 100%;
+    display: flex;
 }
 
 /* Стили для чекбокса Autofix */
@@ -740,4 +751,94 @@ main {
 
 .autofix-checkbox span {
     font-weight: 500;
+}
+
+/* Контейнер для модели и Autofix */
+.model-autofix-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    gap: 1rem;
+}
+
+.model-autofix-container .model-container {
+    flex: 0 0 auto;
+}
+
+.model-autofix-container .autofix-checkbox {
+    margin-top: 0;
+    flex: 0 0 auto;
+}
+
+/* Стили для навигации по истории */
+.history-navigation-above {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.history-navigation {
+    position: absolute;
+    top: 8px;
+    right: 90px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+}
+
+.history-btn {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    line-height: 1.5;
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.history-btn:hover:not(.disabled) {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.history-btn.disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    color: #6c757d;
+}
+
+.history-btn.disabled:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    color: #6c757d;
+}
+
+.history-indicator {
+    font-size: 0.7rem;
+    color: #6c757d;
+    font-weight: 500;
+    min-width: 30px;
+    text-align: center;
+}
+
+.empty-cell .history-buttons {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
 }

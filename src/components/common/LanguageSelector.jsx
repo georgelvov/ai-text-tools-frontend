@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MAIN_LANGUAGES, ADDITIONAL_LANGUAGES } from '../../constants/languages';
 
-const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '' }) => {
+const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '', children }) => {
   // Состояние для хранения текущих кнопок языков
   const [currentButtons, setCurrentButtons] = useState(MAIN_LANGUAGES);
   // Состояние для хранения дополнительных языков
@@ -70,6 +70,9 @@ const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '' }
           </option>
         ))}
       </select>
+
+      {/* Дочерние элементы (кнопки истории) */}
+      {children}
     </div>
   );
 };

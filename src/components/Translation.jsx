@@ -21,6 +21,10 @@ const Translation = ({
 }) => {
   const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_TARGET_LANGUAGE);
   
+  // Состояние для истории ответов
+  const [history, setHistory] = useState(['']); // Инициализируем с пустой строкой
+  const [currentIndex, setCurrentIndex] = useState(0); // Начинаем с индекса 0
+  
   const { makeRequest, loading, error } = useApiRequest();
   const { model, handleModelChange } = useModelState();
   const selectedLanguageRef = useRef(selectedLanguage);
@@ -29,6 +33,46 @@ const Translation = ({
   useEffect(() => {
     selectedLanguageRef.current = selectedLanguage;
   }, [selectedLanguage]);
+
+  // Функция добавления ответа в историю
+  const addToHistory = useCallback((response) => {
+    setHistory(prevHistory => {
+      // Не добавляем дубликаты подряд
+      if (prevHistory.length > 0 && prevHistory[prevHistory.length - 1] === response) {
+        return prevHistory;
+      }
+      
+      const newHistory = [...prevHistory, response];
+      // Ограничиваем историю 10 элементами
+      if (newHistory.length > 10) {
+        return newHistory.slice(-10);
+      }
+      return newHistory;
+    });
+    // Автоматически переходим на последний элемент истории
+    setCurrentIndex(prevIndex => {
+      const newHistoryLength = history.length + 1;
+      return Math.min(newHistoryLength - 1, 9); // Максимум 10 элементов
+    });
+  }, [history.length]);
+
+  // Функция навигации назад
+  const goBack = useCallback(() => {
+    if (currentIndex > 0) {
+      const newIndex = currentIndex - 1;
+      setCurrentIndex(newIndex);
+      setTranslatedText(history[newIndex]);
+    }
+  }, [currentIndex, history, setTranslatedText]);
+
+  // Функция навигации вперед
+  const goForward = useCallback(() => {
+    if (currentIndex < history.length - 1) {
+      const newIndex = currentIndex + 1;
+      setCurrentIndex(newIndex);
+      setTranslatedText(history[newIndex]);
+    }
+  }, [currentIndex, history, setTranslatedText]);
 
   // Функция обработки перевода с useCallback для стабильности
   const processTranslateText = useCallback(async (inputText) => {
@@ -51,8 +95,9 @@ const Translation = ({
     if (data) {
       setDetectedLanguage(`Language: ${data.detectedLanguage}`);
       setTranslatedText(data.translatedText);
+      addToHistory(data.translatedText); // Добавляем ответ в историю
     }
-  }, [model, selectedLanguage, makeRequest, setTranslatedText, setDetectedLanguage]);
+  }, [model, selectedLanguage, makeRequest, setTranslatedText, setDetectedLanguage, addToHistory]);
 
   // Используем custom hook для обработки текста
   const { handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(processTranslateText, text, setText);
@@ -103,6 +148,7 @@ const Translation = ({
         if (data) {
           setDetectedLanguage(`Language: ${data.detectedLanguage}`);
           setTranslatedText(data.translatedText);
+          addToHistory(data.translatedText); // Добавляем ответ в историю
         }
       };
       
@@ -113,6 +159,10 @@ const Translation = ({
   // Обработчик очистки текста
   const handleClearText = () => {
     setText('');
+    // Добавляем пустую строку в историю при очистке
+    addToHistory('');
+    // Сразу переходим на последний элемент (пустую строку)
+    setCurrentIndex(history.length);
   };
 
   return (
@@ -138,7 +188,29 @@ const Translation = ({
             <LanguageSelector 
               selectedLanguage={selectedLanguage}
               onLanguageSelect={handleLanguageSelectWithProcessing}
-            />
+            >
+              {/* Кнопки навигации по истории */}
+              <div className="history-buttons">
+                <button
+                  type="button"
+                  className={`history-btn history-back ${currentIndex <= 0 ? 'disabled' : ''}`}
+                  onClick={goBack}
+                  disabled={currentIndex <= 0}
+                  title="Previous translation"
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  className={`history-btn history-forward ${currentIndex >= history.length - 1 ? 'disabled' : ''}`}
+                  onClick={goForward}
+                  disabled={currentIndex >= history.length - 1}
+                  title="Next translation"
+                >
+                  →
+                </button>
+              </div>
+            </LanguageSelector>
           </div>
 
           {/* Ячейка 3: Поле ввода текста */}
@@ -169,9 +241,10 @@ const Translation = ({
             <div className="result-container">
               <TextArea 
                 value={loading ? '' : translatedText}
-                readOnly
+                onChange={(e) => setTranslatedText(e.target.value)}
+                readOnly={!translatedText.trim() || loading}
                 placeholder={loading ? '' : "Translated text will appear here..."}
-                className={`form-control result-textarea result-textarea-grammar ${text.trim() && !loading ? 'filled' : 'empty'}`}
+                className={`form-control result-textarea result-textarea-grammar ${translatedText.trim() && !loading ? 'filled' : 'empty'}`}
               />
               {loading && (
                 <div className="loading-dots-overlay">

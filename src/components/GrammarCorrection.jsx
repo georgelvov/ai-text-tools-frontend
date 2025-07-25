@@ -13,7 +13,11 @@ import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) => {
   const { makeRequest, loading, error } = useApiRequest();
   const { model, handleModelChange } = useModelState();
-  const [autofix, setAutofix] = useState(true); // По умолчанию включен
+  const [autofix, setAutofix] = useState(false); // По умолчанию выключен
+  
+  // Состояние для истории ответов
+  const [history, setHistory] = useState(['']); // Инициализируем с пустой строкой
+  const [currentIndex, setCurrentIndex] = useState(0); // Начинаем с индекса 0
 
   // Обработчик выбора стиля коррекции
   const handleStyleSelect = (style) => {
@@ -28,6 +32,46 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   const handleAutofixChange = (e) => {
     setAutofix(e.target.checked);
   };
+
+  // Функция добавления ответа в историю
+  const addToHistory = useCallback((response) => {
+    setHistory(prevHistory => {
+      // Не добавляем дубликаты подряд
+      if (prevHistory.length > 0 && prevHistory[prevHistory.length - 1] === response) {
+        return prevHistory;
+      }
+      
+      const newHistory = [...prevHistory, response];
+      // Ограничиваем историю 10 элементами
+      if (newHistory.length > 10) {
+        return newHistory.slice(-10);
+      }
+      return newHistory;
+    });
+    // Автоматически переходим на последний элемент истории
+    setCurrentIndex(prevIndex => {
+      const newHistoryLength = history.length + 1;
+      return Math.min(newHistoryLength - 1, 9); // Максимум 10 элементов
+    });
+  }, [history.length]);
+
+  // Функция навигации назад
+  const goBack = useCallback(() => {
+    if (currentIndex > 0) {
+      const newIndex = currentIndex - 1;
+      setCurrentIndex(newIndex);
+      setCorrectedText(history[newIndex]);
+    }
+  }, [currentIndex, history, setCorrectedText]);
+
+  // Функция навигации вперед
+  const goForward = useCallback(() => {
+    if (currentIndex < history.length - 1) {
+      const newIndex = currentIndex + 1;
+      setCurrentIndex(newIndex);
+      setCorrectedText(history[newIndex]);
+    }
+  }, [currentIndex, history, setCorrectedText]);
 
   // Функция обработки грамматики с конкретным стилем
   const processGrammarTextWithStyle = useCallback(async (inputText, style) => {
@@ -48,8 +92,9 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
 
     if (data) {
       setCorrectedText(data.correctedText);
+      addToHistory(data.correctedText); // Добавляем ответ в историю
     }
-  }, [model, makeRequest, setCorrectedText]);
+  }, [model, makeRequest, setCorrectedText, addToHistory]);
 
   // Функция обработки грамматики с useCallback для стабильности
   const processGrammarText = useCallback(async (inputText) => {
@@ -70,8 +115,9 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
 
     if (data) {
       setCorrectedText(data.correctedText);
+      addToHistory(data.correctedText); // Добавляем ответ в историю
     }
-  }, [model, makeRequest, setCorrectedText]);
+  }, [model, makeRequest, setCorrectedText, addToHistory]);
 
   // Используем custom hook для обработки текста с учетом autofix
   const { handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(
@@ -84,6 +130,7 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   useEffect(() => {
     if (!text || text.trim().length === 0) {
       setCorrectedText('');
+      // НЕ добавляем пустую строку в историю автоматически при изменении текста
     }
   }, [text, setCorrectedText]);
 
@@ -106,6 +153,10 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   // Обработчик очистки текста
   const handleClearText = () => {
     setText('');
+    // Добавляем пустую строку в историю при очистке
+    addToHistory('');
+    // Сразу переходим на последний элемент (пустую строку)
+    setCurrentIndex(history.length);
   };
 
   return (
@@ -114,28 +165,53 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
         <div className="grammar-grid">
           {/* Ячейка 1: Выбор модели для ввода */}
           <div className="grid-cell model-cell">
-            <ModelSelector 
-              value={model}
-              onChange={handleModelChangeWithProcessing}
-            />
-            {/* Чекбокс Autofix */}
-            <div className="autofix-checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={autofix}
-                  onChange={handleAutofixChange}
-                />
-                <span>Autofix</span>
-              </label>
+            <div className="model-autofix-container">
+              <ModelSelector 
+                value={model}
+                onChange={handleModelChangeWithProcessing}
+              />
+              {/* Чекбокс Autofix */}
+              <div className="autofix-checkbox">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={autofix}
+                    onChange={handleAutofixChange}
+                  />
+                  <span>Autofix</span>
+                </label>
+              </div>
             </div>
           </div>
 
           {/* Ячейка 2: Выбор стиля коррекции */}
           <div className="grid-cell empty-cell">
-            <StyleSelector 
-              onStyleSelect={handleStyleSelect}
-            />
+            <div className="language-selector">
+              <StyleSelector 
+                onStyleSelect={handleStyleSelect}
+              />
+              {/* Кнопки навигации по истории справа от кнопок стилей */}
+              <div className="history-buttons">
+                <button
+                  type="button"
+                  className={`history-btn history-back ${currentIndex <= 0 ? 'disabled' : ''}`}
+                  onClick={goBack}
+                  disabled={currentIndex <= 0}
+                  title="Previous response"
+                >
+                  ←
+                </button>
+                <button
+                  type="button"
+                  className={`history-btn history-forward ${currentIndex >= history.length - 1 ? 'disabled' : ''}`}
+                  onClick={goForward}
+                  disabled={currentIndex >= history.length - 1}
+                  title="Next response"
+                >
+                  →
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Ячейка 3: Поле ввода текста */}
@@ -167,9 +243,9 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
               <TextArea 
                 value={loading ? '' : correctedText}
                 onChange={handleCorrectedTextChange}
-                readOnly={!text.trim() || loading}
+                readOnly={!correctedText.trim() || loading}
                 placeholder={loading ? '' : "Corrected text will appear here..."}
-                className={`form-control result-textarea result-textarea-grammar ${text.trim() && !loading ? 'filled' : 'empty'}`}
+                className={`form-control result-textarea result-textarea-grammar ${correctedText.trim() && !loading ? 'filled' : 'empty'}`}
               />
               {loading && (
                 <div className="loading-dots-overlay">
