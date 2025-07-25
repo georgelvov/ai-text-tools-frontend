@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MAIN_LANGUAGES, ADDITIONAL_LANGUAGES } from '../../constants/languages';
 
 const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '', children }) => {
@@ -6,11 +6,31 @@ const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '', 
   const [currentButtons, setCurrentButtons] = useState(MAIN_LANGUAGES);
   // Состояние для хранения дополнительных языков
   const [additionalLangs, setAdditionalLangs] = useState(ADDITIONAL_LANGUAGES);
+  // Состояние для выпадающего списка
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   
   // Все языки для выпадающего списка
   const dropdownLanguages = additionalLangs
     .filter(lang => !currentButtons.some(btn => btn.code === lang.code))
     .sort((a, b) => a.name.localeCompare(b.name));
+
+  // Обработчик клика вне выпадающего списка
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   // Обработчик выбора языка из выпадающего списка
   const handleDropdownSelect = (langCode) => {
@@ -33,12 +53,18 @@ const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '', 
     ]);
 
     setCurrentButtons(newButtons);
+    setIsDropdownOpen(false);
     onLanguageSelect(langCode);
   };
 
   // Обработчик клика по кнопке
   const handleButtonClick = (langCode) => {
     onLanguageSelect(langCode);
+  };
+
+  // Обработчик переключения выпадающего списка
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   return (
@@ -58,18 +84,29 @@ const LanguageSelector = ({ selectedLanguage, onLanguageSelect, className = '', 
       </div>
 
       {/* Дополнительные языки в выпадающем списке */}
-      <select
-        className="form-select language-select"
-        value={dropdownLanguages.some(lang => lang.code === selectedLanguage) ? selectedLanguage : ""}
-        onChange={(e) => handleDropdownSelect(e.target.value)}
-      >
-        <option value="" disabled></option>
-        {dropdownLanguages.map(lang => (
-          <option key={lang.code} value={lang.code}>
-            {lang.name}
-          </option>
-        ))}
-      </select>
+      <div className="dropdown" ref={dropdownRef}>
+        <button
+          type="button"
+          className="dropdown-toggle language-select"
+          onClick={toggleDropdown}
+        >
+        </button>
+        {isDropdownOpen && (
+          <ul className="dropdown-menu show">
+            {dropdownLanguages.map(lang => (
+              <li key={lang.code}>
+                <button
+                  type="button"
+                  className="dropdown-item"
+                  onClick={() => handleDropdownSelect(lang.code)}
+                >
+                  {lang.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {/* Дочерние элементы (кнопки истории) */}
       {children}

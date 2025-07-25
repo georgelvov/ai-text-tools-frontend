@@ -292,6 +292,31 @@ main {
     gap: 0.25rem;
 }
 
+/* Стили для кнопки выпадающего списка языков */
+.dropdown-toggle.language-select {
+    width: 30px;
+    min-width: 30px;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    height: 31px;
+    border-radius: 20px;
+    background-position: center;
+    background-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    border: 1px solid #ddd;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.dropdown-toggle.language-select:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+}
+
 .dropdown-menu {
     position: absolute;
     top: 100%;
