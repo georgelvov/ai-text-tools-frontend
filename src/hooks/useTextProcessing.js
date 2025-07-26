@@ -1,7 +1,7 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { useDebounce } from './useDebounce';
 
-export const useTextProcessing = (processFunction = null, text = '', setText = null, minLength = 3) => {
+export const useTextProcessing = (processFunction = null, text = '', setText = null, minLength = 3, debounceDelay = 1500) => {
   const isPastingRef = useRef(false);
   const textRef = useRef(text);
   const processFunctionRef = useRef(processFunction);
@@ -20,7 +20,7 @@ export const useTextProcessing = (processFunction = null, text = '', setText = n
     if (processFunctionRef.current) {
       processFunctionRef.current(textRef.current);
     }
-  });
+  }, debounceDelay);
 
   const handleTextChange = useCallback((e) => {
     const newText = e.target.value;

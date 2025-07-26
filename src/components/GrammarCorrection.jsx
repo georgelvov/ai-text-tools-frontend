@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { 
   ModelSelector, 
   TextArea, 
@@ -18,13 +18,32 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   // Состояние для истории ответов
   const [history, setHistory] = useState(['']); // Инициализируем с пустой строкой
   const [currentIndex, setCurrentIndex] = useState(0); // Начинаем с индекса 0
+  const historyDebounceRef = useRef(null); // Для debounce сохранения в историю
+
+  // Эффект для добавления пустой строки в историю при инициализации
+  useEffect(() => {
+    if (history.length === 0) {
+      setHistory(['']);
+      setCurrentIndex(0);
+    }
+  }, []);
+
+  // Cleanup для debounce при размонтировании
+  useEffect(() => {
+    return () => {
+      if (historyDebounceRef.current) {
+        clearTimeout(historyDebounceRef.current);
+      }
+    };
+  }, []);
 
   // Обработчик выбора стиля коррекции
   const handleStyleSelect = (style) => {
-    // Если есть текст, перезапускаем обработку с новым стилем
-    if (text.trim().length >= 3) {
+    // Используем текущий текст в поле (correctedText или text)
+    const currentText = correctedText || text;
+    if (currentText.trim().length >= 3) {
       cancelDebounce();
-      processGrammarTextWithStyle(text, style);
+      processGrammarTextWithStyle(currentText, style);
     }
   };
 
@@ -39,6 +58,20 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
       processGrammarText(text);
     }
   };
+
+  // Функция добавления ответа в историю с debounce
+  const addToHistoryDebounced = useCallback((response) => {
+    // Очищаем предыдущий timeout
+    if (historyDebounceRef.current) {
+      clearTimeout(historyDebounceRef.current);
+    }
+    
+    // Устанавливаем новый timeout для сохранения в историю
+    historyDebounceRef.current = setTimeout(() => {
+      addToHistory(response);
+      historyDebounceRef.current = null;
+    }, 1000); // 1 секунда задержка
+  }, []);
 
   // Функция добавления ответа в историю
   const addToHistory = useCallback((response) => {
@@ -57,51 +90,32 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     });
     // Автоматически переходим на последний элемент истории
     setCurrentIndex(prevIndex => {
-      const newHistoryLength = history.length + 1;
-      return Math.min(newHistoryLength - 1, 9); // Максимум 10 элементов
+      // Используем функциональное обновление для получения актуальной длины
+      return prevIndex + 1;
     });
-  }, [history.length]);
+  }, []);
 
   // Функция навигации назад
   const goBack = useCallback(() => {
     if (currentIndex > 0) {
       const newIndex = currentIndex - 1;
       setCurrentIndex(newIndex);
-      setCorrectedText(history[newIndex]);
+      const historyText = history[newIndex];
+      setText(historyText); // Всегда устанавливаем text
+      setCorrectedText(''); // Очищаем correctedText
     }
-  }, [currentIndex, history, setCorrectedText]);
+  }, [currentIndex, history, setText, setCorrectedText]);
 
   // Функция навигации вперед
   const goForward = useCallback(() => {
     if (currentIndex < history.length - 1) {
       const newIndex = currentIndex + 1;
       setCurrentIndex(newIndex);
-      setCorrectedText(history[newIndex]);
+      const historyText = history[newIndex];
+      setText(historyText); // Всегда устанавливаем text
+      setCorrectedText(''); // Очищаем correctedText
     }
-  }, [currentIndex, history, setCorrectedText]);
-
-  // Функция обработки грамматики с конкретным стилем
-  const processGrammarTextWithStyle = useCallback(async (inputText, style) => {
-    const trimmedText = inputText.trim();
-    if (!trimmedText || trimmedText.length < 3) {
-      setCorrectedText('');
-      return;
-    }
-
-    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/text/modify`, {
-      method: 'POST',
-      body: JSON.stringify({
-        type: style,
-        text: trimmedText,
-        model: model
-      }),
-    });
-
-    if (data) {
-      setCorrectedText(data.correctedText);
-      addToHistory(data.correctedText); // Добавляем ответ в историю
-    }
-  }, [model, makeRequest, setCorrectedText, addToHistory]);
+  }, [currentIndex, history, setText, setCorrectedText]);
 
   // Функция обработки грамматики с useCallback для стабильности
   const processGrammarText = useCallback(async (inputText) => {
@@ -121,34 +135,95 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     });
 
     if (data) {
-      setCorrectedText(data.correctedText);
-      addToHistory(data.correctedText); // Добавляем ответ в историю
+      setText(data.correctedText); // заменяем текст в поле на исправленный
+      setCorrectedText(''); // очищаем correctedText
+      addToHistory(trimmedText); // Сохраняем то, что отправлялось к бэку
+      addToHistory(data.correctedText); // Сохраняем то, что пришло от бэка
     }
-  }, [model, makeRequest, setCorrectedText, addToHistory]);
+  }, [model, makeRequest, setText, setCorrectedText, addToHistory]);
+
+  // Функция обработки грамматики с конкретным стилем
+  const processGrammarTextWithStyle = useCallback(async (inputText, style) => {
+    const trimmedText = inputText.trim();
+    if (!trimmedText || trimmedText.length < 3) {
+      setCorrectedText('');
+      return;
+    }
+
+    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/text/modify`, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: style,
+        text: trimmedText,
+        model: model
+      }),
+    });
+
+    if (data) {
+      setText(data.correctedText); // заменяем текст в поле на исправленный
+      setCorrectedText(''); // очищаем correctedText
+      addToHistory(trimmedText); // Сохраняем то, что отправлялось к бэку
+      addToHistory(data.correctedText); // Сохраняем то, что пришло от бэка
+    }
+  }, [model, makeRequest, setText, setCorrectedText, addToHistory]);
 
   // Используем custom hook для обработки текста с учетом autofix
   const { handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(
     autofix ? processGrammarText : null, // Передаем null если autofix выключен
     text, 
-    setText
+    setText,
+    3,
+    2000 // 2 секунды задержка
   );
+
+  // Обработчик изменения текста для единого поля
+  const handleTextChangeSingle = (e) => {
+    const newText = e.target.value;
+    setText(newText);
+    
+    if (autofix) {
+      // Если autofix включен, используем стандартную обработку с debounce
+      handleTextChange(e);
+    } else {
+      // Если autofix выключен, просто обновляем текст
+      setCorrectedText('');
+    }
+  };
+
+  // Обработчик вставки для единого поля
+  const handlePasteSingle = (e) => {
+    if (autofix) {
+      handlePaste(e);
+    } else {
+      setCorrectedText('');
+    }
+  };
 
   // Эффект для очистки результата когда текст пустой
   useEffect(() => {
     if (!text || text.trim().length === 0) {
       setCorrectedText('');
-      // НЕ добавляем пустую строку в историю автоматически при изменении текста
     }
   }, [text, setCorrectedText]);
+
+  // Эффект для синхронизации текста при autofix выключен
+  useEffect(() => {
+    if (!autofix) {
+      setCorrectedText(text);
+    }
+  }, [text, autofix, setCorrectedText]);
 
   // Обработчик изменения модели с немедленной обработкой
   const handleModelChangeWithProcessing = (e) => {
     handleModelChange(e);
     
     // Обрабатываем только если autofix включен
-    if (autofix && text.trim().length >= 3) {
-      cancelDebounce();
-      processGrammarText(text);
+    if (autofix) {
+      const currentText = correctedText || text;
+      if (currentText.trim().length >= 3) {
+        cancelDebounce();
+        processGrammarText(currentText);
+      }
     }
   };
 
@@ -160,10 +235,11 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   // Обработчик очистки текста
   const handleClearText = () => {
     setText('');
+    setCorrectedText('');
     // Добавляем пустую строку в историю при очистке
     addToHistory('');
     // Сразу переходим на последний элемент (пустую строку)
-    setCurrentIndex(history.length);
+    setCurrentIndex(prevIndex => history.length);
   };
 
   return (
@@ -221,49 +297,32 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
             </div>
           </div>
 
-          {/* Ячейка 3: Поле ввода текста */}
-          <div className="grid-cell input-cell">
+          {/* Ячейка 3: Единое поле ввода/вывода текста */}
+          <div className="grid-cell input-cell" style={{ gridColumn: '1 / -1' }}>
             <div className="input-container">
               <TextArea 
                 value={text}
-                onChange={handleTextChange}
-                onPaste={handlePaste}
+                onChange={handleTextChangeSingle}
+                onPaste={handlePasteSingle}
                 placeholder="Enter or paste your text here..."
+                readOnly={false}
               />
               <CopyButton 
                 text={text}
                 className="copy-btn-input"
-                title="Copy input text"
+                title="Copy text"
               />
               <ClearButton 
                 text={text}
                 onClear={handleClearText}
                 className="clear-btn-input"
-                title="Clear input text"
-              />
-            </div>
-          </div>
-
-          {/* Ячейка 4: Поле с исправленным текстом */}
-          <div className="grid-cell output-cell">
-            <div className="result-container">
-              <TextArea 
-                value={loading ? '' : correctedText}
-                onChange={handleCorrectedTextChange}
-                readOnly={!correctedText.trim() || loading}
-                placeholder={loading ? '' : "Corrected text will appear here..."}
-                className={`form-control result-textarea result-textarea-grammar ${correctedText.trim() && !loading ? 'filled' : 'empty'}`}
+                title="Clear text"
               />
               {loading && (
                 <div className="loading-dots-overlay">
                   <LoadingDots />
                 </div>
               )}
-              <CopyButton 
-                text={correctedText}
-                className="copy-btn-output"
-                title="Copy corrected text"
-              />
             </div>
           </div>
         </div>
