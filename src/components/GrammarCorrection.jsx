@@ -75,13 +75,26 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
 
   // Функция добавления ответа в историю
   const addToHistory = useCallback((response) => {
+    // Don't add undefined or null to history
+    if (!response) {
+      return;
+    }
+
+    // Trim the response before adding to history
+    const trimmedResponse = response.trim();
+
+    // Only add empty string if history is empty, otherwise don't add empty strings
+    if (trimmedResponse === '' && history.length > 0) {
+      return;
+    }
+
     setHistory(prevHistory => {
-      // Не добавляем дубликаты подряд
-      if (prevHistory.length > 0 && prevHistory[prevHistory.length - 1] === response) {
+      // Don't add if last element matches the new element
+      if (prevHistory.length > 0 && prevHistory[prevHistory.length - 1] === trimmedResponse) {
         return prevHistory;
       }
       
-      const newHistory = [...prevHistory, response];
+      const newHistory = [...prevHistory, trimmedResponse];
       // Ограничиваем историю 10 элементами
       if (newHistory.length > 10) {
         return newHistory.slice(-10);
@@ -93,7 +106,7 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
       // Используем функциональное обновление для получения актуальной длины
       return prevIndex + 1;
     });
-  }, []);
+  }, [history.length]);
 
   // Функция навигации назад
   const goBack = useCallback(() => {
@@ -101,8 +114,11 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
       const newIndex = currentIndex - 1;
       setCurrentIndex(newIndex);
       const historyText = history[newIndex];
-      setText(historyText); // Всегда устанавливаем text
-      setCorrectedText(''); // Очищаем correctedText
+      // Don't show empty strings or spaces
+      if (historyText && historyText.trim() !== '') {
+        setText(historyText); // Always set text
+        setCorrectedText(''); // Clear correctedText
+      }
     }
   }, [currentIndex, history, setText, setCorrectedText]);
 
@@ -112,8 +128,11 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
       const newIndex = currentIndex + 1;
       setCurrentIndex(newIndex);
       const historyText = history[newIndex];
-      setText(historyText); // Всегда устанавливаем text
-      setCorrectedText(''); // Очищаем correctedText
+      // Don't show empty strings or spaces
+      if (historyText && historyText.trim() !== '') {
+        setText(historyText); // Always set text
+        setCorrectedText(''); // Clear correctedText
+      }
     }
   }, [currentIndex, history, setText, setCorrectedText]);
 
@@ -236,10 +255,8 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   const handleClearText = () => {
     setText('');
     setCorrectedText('');
-    // Добавляем пустую строку в историю при очистке
-    addToHistory('');
-    // Сразу переходим на последний элемент (пустую строку)
-    setCurrentIndex(prevIndex => history.length);
+    // Don't add empty string to history
+    setCurrentIndex(0); // Reset to first element (empty string)
   };
 
   return (
@@ -301,7 +318,7 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
           <div className="grid-cell input-cell" style={{ gridColumn: '1 / -1' }}>
             <div className="input-container">
               <TextArea 
-                value={text}
+                value={text || ''}
                 onChange={handleTextChangeSingle}
                 onPaste={handlePasteSingle}
                 placeholder="Enter or paste your text here..."
