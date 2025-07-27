@@ -10,7 +10,7 @@ import {
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 
-const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
+const TextEditor = ({ text, setText }) => {
   const { makeRequest, loading, error } = useApiRequest();
   const { model, handleModelChange } = useModelState();
   const [autofix, setAutofix] = useState(false); // По умолчанию выключен
@@ -20,12 +20,10 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
   const [currentIndex, setCurrentIndex] = useState(0); // Начинаем с индекса 0
 
   // Обработчик выбора стиля коррекции
-  const handleStyleSelect = (style) => {
-    // Используем текущий текст в поле (correctedText или text)
-    const currentText = correctedText || text;
-    if (currentText.trim().length >= 3) {
+  const handleStyleSelect = (style) => { 
+    if (text.trim().length >= 3) {
       cancelDebounce();
-      processGrammarText(currentText, style);
+      processGrammarText(text, style);
     }
   };
 
@@ -41,53 +39,44 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
     }
   };
 
-  // Функция добавления ответа в историю
-  const addToHistory = useCallback((response) => {
+  const addToHistory = useCallback((entry) => {
     setHistory(prevHistory => {
       // Не добавляем дубликаты подряд
-      if (prevHistory.length > 0 && prevHistory[prevHistory.length - 1] === response) {
+      if (prevHistory.length > 0 && prevHistory[prevHistory.length - 1] === entry) {
         return prevHistory;
       }
       
-      const newHistory = [...prevHistory, response];
+      const newHistory = [...prevHistory, entry];
       // Ограничиваем историю 10 элементами
       if (newHistory.length > 10) {
         return newHistory.slice(-10);
       }
+
+      setCurrentIndex(newHistory.length - 1);
+
       return newHistory;
     });
-    // Автоматически переходим на последний элемент истории
-    setCurrentIndex(prevIndex => {
-      const newHistoryLength = history.length + 1;
-      return Math.min(newHistoryLength - 1, 9); // Максимум 10 элементов
-    });
-  }, [history.length]);
+  }, []);
 
   // Функция навигации назад
   const goBack = useCallback(() => {
-    if (currentIndex > 0) {
-      const newIndex = currentIndex - 1;
-      setCurrentIndex(newIndex);
-      setText(history[newIndex]); // Always set text
-      setCorrectedText(''); // Clear correctedText
-    }
-  }, [currentIndex, history, setText, setCorrectedText]);
+    const newIndex = currentIndex - 1;
+    setCurrentIndex(newIndex);
+    setText(history[newIndex]); // Always set text
+  }, [currentIndex, text]);
 
   // Функция навигации вперед
   const goForward = useCallback(() => {
-    if (currentIndex < history.length - 1) {
-      const newIndex = currentIndex + 1;
-      setCurrentIndex(newIndex);
-      setText(history[newIndex]); // Always set text
-      setCorrectedText(''); // Clear correctedText
-    }
-  }, [currentIndex, history, setText, setCorrectedText]);
+    const newIndex = currentIndex + 1;
+    setCurrentIndex(newIndex);
+    setText(history[newIndex]);
+  }, [currentIndex, history, setText]);
 
   // Единая функция обработки грамматики с любым стилем
   const processGrammarText = useCallback(async (inputText, style) => {
-    const trimmedText = inputText.trim();
-    if (!trimmedText || trimmedText.length < 3) {
-      setCorrectedText('');
+    const originalText = inputText.trim();
+
+    if (!originalText || originalText.length < 3) {
       return;
     }
 
@@ -95,21 +84,21 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
       method: 'POST',
       body: JSON.stringify({ 
         type: style,
-        text: trimmedText,
+        text: originalText,
         model: model
       }),
     });
 
     if (data) {
-      setText(data.correctedText); // заменяем текст в поле на исправленный
-      setCorrectedText(''); // очищаем correctedText
-      addToHistory(trimmedText); // Сохраняем то, что отправлялось к бэку
-      addToHistory(data.correctedText); // Сохраняем то, что пришло от бэка
+      const correctedText = data.correctedText.trim();
+      setText(correctedText); // заменяем текст в поле на исправленный
+      addToHistory(originalText); // Сохраняем то, что отправлялось к бэку
+      addToHistory(correctedText); // Сохраняем то, что пришло от бэка
     }
 
     console.log("Req: History length: " + history.length + ". History: " + history);
 
-  }, [model, makeRequest, setText, setCorrectedText, addToHistory]);
+  }, [model, makeRequest, setText, addToHistory]);
 
   // Используем custom hook для обработки текста с учетом autofix
   const { handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(
@@ -128,9 +117,6 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
     if (autofix) {
       // Если autofix включен, используем стандартную обработку с debounce
       handleTextChange(e);
-    } else {
-      // Если autofix выключен, просто обновляем текст
-      setCorrectedText('');
     }
   };
 
@@ -138,24 +124,8 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
   const handlePasteSingle = (e) => {
     if (autofix) {
       handlePaste(e);
-    } else {
-      setCorrectedText('');
     }
   };
-
-  // Эффект для очистки результата когда текст пустой
-  useEffect(() => {
-    if (!text || text.trim().length === 0) {
-      setCorrectedText('');
-    }
-  }, [text, setCorrectedText]);
-
-  // Эффект для синхронизации текста при autofix выключен
-  useEffect(() => {
-    if (!autofix) {
-      setCorrectedText(text);
-    }
-  }, [text, autofix, setCorrectedText]);
 
   // Обработчик изменения модели с немедленной обработкой
   const handleModelChangeWithProcessing = (e) => {
@@ -163,10 +133,9 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
     
     // Обрабатываем только если autofix включен
     if (autofix) {
-      const currentText = correctedText || text;
-      if (currentText.trim().length >= 3) {
+      if (text.trim().length >= 3) {
         cancelDebounce();
-        processGrammarText(currentText, 'fix');
+        processGrammarText(text, 'fix');
       }
     }
   };
@@ -174,9 +143,7 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
   // Обработчик очистки текста
   const handleClearText = () => {
     setText('');
-    setCorrectedText('');
-    // Сразу переходим на последний элемент (пустую строку)
-    setCurrentIndex(history.length);
+    addToHistory('');
   };
 
   return (
@@ -216,14 +183,14 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
                   type="button"
                   className={`history-btn history-back ${currentIndex <= 0 ? 'disabled' : ''}`}
                   onClick={goBack}
-                  disabled={currentIndex <= 0}
+                  disabled={currentIndex < 0}
                   title="Previous response"
                 >
                   ←
                 </button>
                 <button
                   type="button"
-                  className={`history-btn history-forward ${currentIndex >= history.length - 1 ? 'disabled' : ''}`}
+                  className={`history-btn history-forward ${currentIndex == history.length - 1 ? 'disabled' : ''}`}
                   onClick={goForward}
                   disabled={currentIndex >= history.length - 1}
                   title="Next response"
