@@ -25,10 +25,11 @@ main {
 .tool-form {
     background: white;
     padding: 2rem;
-    border-radius: 10px;
+    border-radius: 0 0 10px 10px;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
     position: relative;
+    border-top: none;
 }
 
 .text-boxes {
@@ -139,7 +140,34 @@ main {
 }
 
 .nav-tabs {
-    margin-bottom: 2rem;
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.nav-tabs .nav-link {
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+    margin-bottom: 0;
+    background-color: #f8f9fa;
+    border-color: #dee2e6 #dee2e6 #f8f9fa;
+}
+
+.nav-tabs .nav-link:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6 #dee2e6 #e9ecef;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: white !important;
+    border-color: #dee2e6 #dee2e6 white !important;
+    color: #495057 !important;
+    border-bottom: 1px solid white !important;
+    box-shadow: none !important;
+}
+
+.nav-tabs .nav-link.active:hover {
+    background-color: white !important;
+    border-color: #dee2e6 #dee2e6 white !important;
 }
 
 .controls {
@@ -191,10 +219,11 @@ main {
     width: auto;
     min-width: 150px;
     font-size: 0.9rem;
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 2rem 0.25rem 0.5rem;
     height: auto;
     background-position: right 0.5rem center;
     line-height: 1.5;
+    background-size: 12px;
 }
 
 .model-container {
@@ -632,6 +661,15 @@ main {
   z-index: 10;
 }
 
+/* Оверлей для точек загрузки в TextEditor (по центру внизу) */
+.text-editor-loading-dots-overlay {
+  position: absolute;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
 /* GrammarCorrection specific styles */
 .result-textarea-grammar {
     background: #f8f9fa !important;
@@ -747,22 +785,6 @@ main {
     gap: 0.25rem;
 }
 
-.lang-btn {
-    padding: 0.4rem 1.2rem;
-    border: 1px solid #ddd;
-    background: white;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: all 0.2s;
-    line-height: 1.5;
-}
-
-.lang-btn:hover {
-    background: #f8f9fa;
-    border-color: #adb5bd;
-}
-
 .lang-btn.active {
     background: #0d6efd;
     color: white;
@@ -785,37 +807,9 @@ main {
 .empty-cell .language-selector {
     margin: 0;
     padding: 0;
-    justify-content: space-between;
+    justify-content: flex-start;
     width: 100%;
     display: flex;
-}
-
-/* Стили для чекбокса Autofix */
-.autofix-checkbox {
-    margin-top: 0.5rem;
-    display: flex;
-    align-items: center;
-}
-
-.autofix-checkbox label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    color: #6c757d;
-    cursor: pointer;
-    user-select: none;
-}
-
-.autofix-checkbox input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    accent-color: #0d6efd;
-}
-
-.autofix-checkbox span {
-    font-weight: 500;
 }
 
 /* Контейнер для модели и Autofix */
@@ -867,12 +861,14 @@ main {
     cursor: pointer;
     font-size: 0.8rem;
     transition: all 0.2s;
-    line-height: 1.5;
+    line-height: 1;
     min-width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: normal;
+    vertical-align: middle;
 }
 
 .history-btn:hover:not(.disabled) {
@@ -906,4 +902,182 @@ main {
     display: flex;
     gap: 0.25rem;
     align-items: center;
+}
+
+/* Контейнер для истории и других элементов */
+.history-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.history-container .history-buttons {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.history-container .style-selector-container {
+  display: flex;
+  align-items: center;
+}
+
+.history-container .detected-language {
+  position: static;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Унифицированные стили для всех кнопок - ПЕРЕЗАПИСЫВАЕМ ВСЕ */
+.history-btn,
+.lang-btn {
+  padding: 0.5rem 1rem !important;
+  border: 1px solid #ddd !important;
+  background: white !important;
+  border-radius: 20px !important;
+  cursor: pointer !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s !important;
+  line-height: 1 !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: normal !important;
+  min-width: 40px !important;
+  margin: 0 !important;
+  vertical-align: middle !important;
+}
+
+.history-btn:hover:not(.disabled),
+.lang-btn:hover {
+  background: #f8f9fa !important;
+  border-color: #adb5bd !important;
+}
+
+/* Активное состояние для кнопок языка */
+.lang-btn.active {
+  background: #0d6efd !important;
+  color: white !important;
+  border-color: #0d6efd !important;
+}
+
+/* Стили для кнопки Autofix в активном состоянии */
+.lang-btn.autofix-active {
+  background: #0d6efd !important;
+  color: white !important;
+  border-color: #0d6efd !important;
+}
+
+.lang-btn.autofix-active:hover {
+  background: #0b5ed7 !important;
+  border-color: #0b5ed7 !important;
+}
+
+/* Стили для hover подсказки на кнопке Fix */
+.lang-btn.fix-btn {
+    position: relative;
+}
+
+.lang-btn.fix-btn:hover::after {
+    content: "Double-click for Autofix";
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.lang-btn.fix-btn:hover::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Стили для hover подсказки на кнопке Autofix */
+.lang-btn.autofix-active {
+    position: relative;
+}
+
+.lang-btn.autofix-active:hover::after {
+    content: "Click to disable Autofix";
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.lang-btn.autofix-active:hover::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Простой контейнер для всех кнопок в одном ряду */
+.buttons-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.buttons-row .history-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.buttons-row .language-selector {
+  margin: 0;
+  padding: 0;
+}
+
+.buttons-row .language-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* Выбор модели слева внизу под окном текста */
+.model-selector-bottom {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 10;
+}
+
+.model-selector-bottom .model-select {
+  min-width: 180px;
+  font-size: 0.9rem;
+  padding: 0.4rem 2rem 0.4rem 0.8rem;
+  background-size: 14px;
 }

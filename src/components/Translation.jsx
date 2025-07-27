@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
-  ModelSelector, 
   TextArea, 
   LoadingDots, 
   ErrorMessage,
   LanguageSelector,
   CopyButton,
-  ClearButton
+  ClearButton,
+  ModelSelector
 } from './common';
-import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
+import { useApiRequest, useTextProcessing } from '../hooks';
 import { DEFAULT_TARGET_LANGUAGE } from '../constants/languages';
 
 const Translation = ({ 
@@ -17,7 +17,9 @@ const Translation = ({
   translatedText, 
   setTranslatedText, 
   detectedLanguage, 
-  setDetectedLanguage 
+  setDetectedLanguage,
+  model,
+  onModelChange
 }) => {
   const [selectedLanguage, setSelectedLanguage] = useState(DEFAULT_TARGET_LANGUAGE);
   
@@ -26,7 +28,6 @@ const Translation = ({
   const [currentIndex, setCurrentIndex] = useState(0); // Начинаем с индекса 0
   
   const { makeRequest, loading, error } = useApiRequest();
-  const { model, handleModelChange } = useModelState();
   const selectedLanguageRef = useRef(selectedLanguage);
 
   // Обновляем ref при изменении языка
@@ -110,16 +111,6 @@ const Translation = ({
     }
   }, [text, setTranslatedText, setDetectedLanguage]);
 
-  // Обработчик изменения модели с немедленной обработкой
-  const handleModelChangeWithProcessing = (e) => {
-    handleModelChange(e);
-    
-    if (text.trim().length >= 3) {
-      cancelDebounce();
-      processTranslateText(text);
-    }
-  };
-
   // Обработчик выбора языка с немедленной обработкой
   const handleLanguageSelectWithProcessing = (lang) => {
     setSelectedLanguage(lang);
@@ -169,27 +160,9 @@ const Translation = ({
     <div className="tool-form">
       <form>
         <div className="grammar-grid">
-          {/* Ячейка 1: Выбор модели */}
+          {/* Ячейка 1: Кнопки истории */}
           <div className="grid-cell model-cell">
-            <ModelSelector 
-              value={model}
-              onChange={handleModelChangeWithProcessing}
-            />
-            {/* Определенный язык */}
-            {detectedLanguage && (
-              <div className="detected-language">
-                {detectedLanguage}
-              </div>
-            )}
-          </div>
-
-          {/* Ячейка 2: Выбор языка */}
-          <div className="grid-cell empty-cell">
-            <LanguageSelector 
-              selectedLanguage={selectedLanguage}
-              onLanguageSelect={handleLanguageSelectWithProcessing}
-            >
-              {/* Кнопки навигации по истории */}
+            <div className="history-container">
               <div className="history-buttons">
                 <button
                   type="button"
@@ -210,7 +183,21 @@ const Translation = ({
                   →
                 </button>
               </div>
-            </LanguageSelector>
+              {/* Определенный язык */}
+              {detectedLanguage && (
+                <div className="detected-language">
+                  {detectedLanguage}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Ячейка 2: Выбор языка */}
+          <div className="grid-cell empty-cell">
+            <LanguageSelector 
+              selectedLanguage={selectedLanguage}
+              onLanguageSelect={handleLanguageSelectWithProcessing}
+            />
           </div>
 
           {/* Ячейка 3: Поле ввода текста */}
@@ -232,6 +219,14 @@ const Translation = ({
                 onClear={handleClearText}
                 className="clear-btn-input"
                 title="Clear input text"
+              />
+            </div>
+            {/* Выбор модели в правом нижнем углу */}
+            <div className="model-selector-bottom">
+              <ModelSelector 
+                value={model}
+                onChange={onModelChange}
+                className="d-inline-block"
               />
             </div>
           </div>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const StyleSelector = ({ onStyleSelect, className = '' }) => {
+const StyleSelector = ({ onStyleSelect, className = '', autofix = false }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState(''); // Убираем дефолтное значение
   const dropdownRef = useRef(null);
+  const clickTimeoutRef = useRef(null);
 
   // Стили для выпадающего списка (кроме Fix)
   const DROPDOWN_STYLES = [
@@ -31,9 +32,21 @@ const StyleSelector = ({ onStyleSelect, className = '' }) => {
     };
   }, [isDropdownOpen]);
 
-  // Обработчик клика по кнопке Fix
+  // Обработчик клика по кнопке Fix с поддержкой двойного нажатия
   const handleFixClick = () => {
-    onStyleSelect('fix');
+    if (clickTimeoutRef.current) {
+      // Это двойное нажатие - включаем Autofix
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      onStyleSelect('autofix'); // Передаем специальный код для включения autofix
+    } else {
+      // Это первое нажатие - ждем второе
+      clickTimeoutRef.current = setTimeout(() => {
+        // Если не было второго нажатия, выполняем обычную коррекцию
+        onStyleSelect('fix');
+        clickTimeoutRef.current = null;
+      }, 300); // 300ms для двойного нажатия
+    }
   };
 
   // Обработчик выбора из выпадающего списка
@@ -52,13 +65,13 @@ const StyleSelector = ({ onStyleSelect, className = '' }) => {
     <div className={`language-selector ${className}`}>
       {/* Стили как кнопки */}
       <div className="language-buttons">
-        {/* Кнопка Fix */}
+        {/* Кнопка Fix/Autofix */}
         <button
           type="button"
-          className="lang-btn"
+          className={`lang-btn ${autofix ? 'autofix-active' : 'fix-btn'}`}
           onClick={handleFixClick}
         >
-          Fix
+          {autofix ? 'Autofix' : 'Fix'}
         </button>
 
         {/* Выпадающий список Improve text */}

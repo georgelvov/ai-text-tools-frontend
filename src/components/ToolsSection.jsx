@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import TextEditor from './TextEditor';
 import Translation from './Translation';
+import { ModelSelector } from './common';
 
-const ToolsSection = () => {
+const ToolsSection = ({ model, onModelChange }) => {
   const [activeTab, setActiveTab] = useState('grammar');
   
   // Состояния для GrammarCorrection
@@ -15,7 +16,7 @@ const ToolsSection = () => {
   const [detectedLanguage, setDetectedLanguage] = useState('');
 
   const tabs = [
-    { id: 'grammar', label: 'Grammar Correction' },
+    { id: 'grammar', label: 'Text Editor' },
     { id: 'translate', label: 'Translation' }
   ];
 
@@ -28,6 +29,8 @@ const ToolsSection = () => {
             setText={setGrammarText}
             correctedText={correctedText}
             setCorrectedText={setCorrectedText}
+            model={model}
+            onModelChange={onModelChange}
           />
         );
       case 'translate':
@@ -39,6 +42,8 @@ const ToolsSection = () => {
             setTranslatedText={setTranslatedText}
             detectedLanguage={detectedLanguage}
             setDetectedLanguage={setDetectedLanguage}
+            model={model}
+            onModelChange={onModelChange}
           />
         );
       default:
@@ -48,6 +53,8 @@ const ToolsSection = () => {
             setText={setGrammarText}
             correctedText={correctedText}
             setCorrectedText={setCorrectedText}
+            model={model}
+            onModelChange={onModelChange}
           />
         );
     }
