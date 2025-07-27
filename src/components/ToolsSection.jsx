@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import GrammarCorrection from './GrammarCorrection';
+import TextEditor from './TextEditor';
 import Translation from './Translation';
 
 const ToolsSection = () => {
@@ -23,7 +23,7 @@ const ToolsSection = () => {
     switch (activeTab) {
       case 'grammar':
         return (
-          <GrammarCorrection 
+          <TextEditor 
             text={grammarText}
             setText={setGrammarText}
             correctedText={correctedText}
@@ -43,7 +43,7 @@ const ToolsSection = () => {
         );
       default:
         return (
-          <GrammarCorrection 
+          <TextEditor 
             text={grammarText}
             setText={setGrammarText}
             correctedText={correctedText}

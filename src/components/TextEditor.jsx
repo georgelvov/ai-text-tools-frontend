@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { 
   ModelSelector, 
   TextArea, 
-  LoadingDots, 
+  LoadingDots,
   ErrorMessage,
   CopyButton,
   ClearButton,
@@ -10,7 +10,7 @@ import {
 } from './common';
 import { useApiRequest, useTextProcessing, useModelState } from '../hooks';
 
-const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) => {
+const TextEditor = ({ text, setText, correctedText, setCorrectedText }) => {
   const { makeRequest, loading, error } = useApiRequest();
   const { model, handleModelChange } = useModelState();
   const [autofix, setAutofix] = useState(false); // По умолчанию выключен
@@ -18,24 +18,6 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   // Состояние для истории ответов
   const [history, setHistory] = useState(['']); // Инициализируем с пустой строкой
   const [currentIndex, setCurrentIndex] = useState(0); // Начинаем с индекса 0
-  const historyDebounceRef = useRef(null); // Для debounce сохранения в историю
-
-  // Эффект для добавления пустой строки в историю при инициализации
-  useEffect(() => {
-    if (history.length === 0) {
-      setHistory(['']);
-      setCurrentIndex(0);
-    }
-  }, []);
-
-  // Cleanup для debounce при размонтировании
-  useEffect(() => {
-    return () => {
-      if (historyDebounceRef.current) {
-        clearTimeout(historyDebounceRef.current);
-      }
-    };
-  }, []);
 
   // Обработчик выбора стиля коррекции
   const handleStyleSelect = (style) => {
@@ -43,7 +25,7 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     const currentText = correctedText || text;
     if (currentText.trim().length >= 3) {
       cancelDebounce();
-      processGrammarTextWithStyle(currentText, style);
+      processGrammarText(currentText, style);
     }
   };
 
@@ -55,46 +37,19 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     // Если включаем autofix и есть текст, выполняем коррекцию
     if (newAutofixValue && text.trim().length >= 3) {
       cancelDebounce();
-      processGrammarText(text);
+      processGrammarText(text, 'fix');
     }
   };
 
-  // Функция добавления ответа в историю с debounce
-  const addToHistoryDebounced = useCallback((response) => {
-    // Очищаем предыдущий timeout
-    if (historyDebounceRef.current) {
-      clearTimeout(historyDebounceRef.current);
-    }
-    
-    // Устанавливаем новый timeout для сохранения в историю
-    historyDebounceRef.current = setTimeout(() => {
-      addToHistory(response);
-      historyDebounceRef.current = null;
-    }, 1000); // 1 секунда задержка
-  }, []);
-
   // Функция добавления ответа в историю
   const addToHistory = useCallback((response) => {
-    // Don't add undefined or null to history
-    if (!response) {
-      return;
-    }
-
-    // Trim the response before adding to history
-    const trimmedResponse = response.trim();
-
-    // Only add empty string if history is empty, otherwise don't add empty strings
-    if (trimmedResponse === '' && history.length > 0) {
-      return;
-    }
-
     setHistory(prevHistory => {
-      // Don't add if last element matches the new element
-      if (prevHistory.length > 0 && prevHistory[prevHistory.length - 1] === trimmedResponse) {
+      // Не добавляем дубликаты подряд
+      if (prevHistory.length > 0 && prevHistory[prevHistory.length - 1] === response) {
         return prevHistory;
       }
       
-      const newHistory = [...prevHistory, trimmedResponse];
+      const newHistory = [...prevHistory, response];
       // Ограничиваем историю 10 элементами
       if (newHistory.length > 10) {
         return newHistory.slice(-10);
@@ -103,8 +58,8 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     });
     // Автоматически переходим на последний элемент истории
     setCurrentIndex(prevIndex => {
-      // Используем функциональное обновление для получения актуальной длины
-      return prevIndex + 1;
+      const newHistoryLength = history.length + 1;
+      return Math.min(newHistoryLength - 1, 9); // Максимум 10 элементов
     });
   }, [history.length]);
 
@@ -113,12 +68,8 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     if (currentIndex > 0) {
       const newIndex = currentIndex - 1;
       setCurrentIndex(newIndex);
-      const historyText = history[newIndex];
-      // Don't show empty strings or spaces
-      if (historyText && historyText.trim() !== '') {
-        setText(historyText); // Always set text
-        setCorrectedText(''); // Clear correctedText
-      }
+      setText(history[newIndex]); // Always set text
+      setCorrectedText(''); // Clear correctedText
     }
   }, [currentIndex, history, setText, setCorrectedText]);
 
@@ -127,17 +78,13 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     if (currentIndex < history.length - 1) {
       const newIndex = currentIndex + 1;
       setCurrentIndex(newIndex);
-      const historyText = history[newIndex];
-      // Don't show empty strings or spaces
-      if (historyText && historyText.trim() !== '') {
-        setText(historyText); // Always set text
-        setCorrectedText(''); // Clear correctedText
-      }
+      setText(history[newIndex]); // Always set text
+      setCorrectedText(''); // Clear correctedText
     }
   }, [currentIndex, history, setText, setCorrectedText]);
 
-  // Функция обработки грамматики с useCallback для стабильности
-  const processGrammarText = useCallback(async (inputText) => {
+  // Единая функция обработки грамматики с любым стилем
+  const processGrammarText = useCallback(async (inputText, style) => {
     const trimmedText = inputText.trim();
     if (!trimmedText || trimmedText.length < 3) {
       setCorrectedText('');
@@ -147,31 +94,6 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
     const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/text/modify`, {
       method: 'POST',
       body: JSON.stringify({ 
-        type: 'fix',
-        text: trimmedText,
-        model: model
-      }),
-    });
-
-    if (data) {
-      setText(data.correctedText); // заменяем текст в поле на исправленный
-      setCorrectedText(''); // очищаем correctedText
-      addToHistory(trimmedText); // Сохраняем то, что отправлялось к бэку
-      addToHistory(data.correctedText); // Сохраняем то, что пришло от бэка
-    }
-  }, [model, makeRequest, setText, setCorrectedText, addToHistory]);
-
-  // Функция обработки грамматики с конкретным стилем
-  const processGrammarTextWithStyle = useCallback(async (inputText, style) => {
-    const trimmedText = inputText.trim();
-    if (!trimmedText || trimmedText.length < 3) {
-      setCorrectedText('');
-      return;
-    }
-
-    const data = await makeRequest(`${process.env.REACT_APP_API_URL}/api/text/modify`, {
-      method: 'POST',
-      body: JSON.stringify({
         type: style,
         text: trimmedText,
         model: model
@@ -184,11 +106,14 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
       addToHistory(trimmedText); // Сохраняем то, что отправлялось к бэку
       addToHistory(data.correctedText); // Сохраняем то, что пришло от бэка
     }
+
+    console.log("Req: History length: " + history.length + ". History: " + history);
+
   }, [model, makeRequest, setText, setCorrectedText, addToHistory]);
 
   // Используем custom hook для обработки текста с учетом autofix
   const { handleTextChange, handlePaste, cancelDebounce } = useTextProcessing(
-    autofix ? processGrammarText : null, // Передаем null если autofix выключен
+    autofix ? (text) => processGrammarText(text, 'fix') : null, // Передаем функцию с явным указанием стиля
     text, 
     setText,
     3,
@@ -241,22 +166,17 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
       const currentText = correctedText || text;
       if (currentText.trim().length >= 3) {
         cancelDebounce();
-        processGrammarText(currentText);
+        processGrammarText(currentText, 'fix');
       }
     }
-  };
-
-  // Обработчик изменения исправленного текста
-  const handleCorrectedTextChange = (e) => {
-    setCorrectedText(e.target.value);
   };
 
   // Обработчик очистки текста
   const handleClearText = () => {
     setText('');
     setCorrectedText('');
-    // Don't add empty string to history
-    setCurrentIndex(0); // Reset to first element (empty string)
+    // Сразу переходим на последний элемент (пустую строку)
+    setCurrentIndex(history.length);
   };
 
   return (
@@ -350,4 +270,4 @@ const GrammarCorrection = ({ text, setText, correctedText, setCorrectedText }) =
   );
 };
 
-export default GrammarCorrection;
+export default TextEditor;
