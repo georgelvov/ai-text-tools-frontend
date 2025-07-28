@@ -24,7 +24,7 @@ main {
 
 .tool-form {
     background: white;
-    padding: 2rem;
+    padding: 2rem 2rem 4rem 2rem;
     border-radius: 0 0 10px 10px;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
@@ -96,6 +96,18 @@ main {
     font-size: 0.9rem;
     text-align: right;
     margin-top: 0.5rem;
+}
+
+.char-counter-top {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-align: right;
+    margin-bottom: 0;
+    margin-top: 0;
+    position: absolute;
+    top: -25px;
+    right: 0;
+    z-index: 10;
 }
 
 .loading {
@@ -877,17 +889,18 @@ main {
 }
 
 .history-btn.disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-    background-color: #e9ecef;
-    border-color: #ced4da;
-    color: #6c757d;
+    opacity: 0.7 !important;
+    cursor: not-allowed !important;
+    background-color: #e9ecef !important;
+    border-color: #ced4da !important;
+    color: #6c757d !important;
 }
 
 .history-btn.disabled:hover {
-    background-color: #e9ecef;
-    border-color: #ced4da;
-    color: #6c757d;
+    background-color: #e9ecef !important;
+    border-color: #ced4da !important;
+    color: #6c757d !important;
+    cursor: not-allowed !important;
 }
 
 .history-indicator {
@@ -1070,7 +1083,7 @@ main {
 /* Выбор модели слева внизу под окном текста */
 .model-selector-bottom {
   position: absolute;
-  bottom: 2rem;
+  bottom: 1rem;
   left: 2rem;
   z-index: 10;
 }
@@ -1080,4 +1093,8 @@ main {
   font-size: 0.9rem;
   padding: 0.4rem 2rem 0.4rem 0.8rem;
   background-size: 14px;
+}
+
+.textarea-container {
+    position: relative;
 }

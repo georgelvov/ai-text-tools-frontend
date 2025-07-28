@@ -12,7 +12,7 @@ import { useApiRequest, useTextProcessing } from '../hooks';
 
 const TextEditor = ({ text, setText, correctedText, setCorrectedText, model, onModelChange }) => {
   const { makeRequest, loading, error } = useApiRequest();
-  const [autofix, setAutofix] = useState(false); // По умолчанию выключен
+  const [autofix, setAutofix] = useState(true); // По умолчанию включен
   
   // Состояние для истории ответов
   const [history, setHistory] = useState(['']); // Инициализируем с пустой строкой
@@ -24,7 +24,7 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText, model, onM
       // Двойное нажатие - включаем Autofix
       setAutofix(true);
       // Если есть текст, сразу отправляем запрос
-      if (text.trim().length >= 3) {
+      if (text && text.trim && text.trim().length >= 3) {
         cancelDebounce();
         processGrammarText(text, 'fix');
       }
@@ -37,13 +37,13 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText, model, onM
       }
       
       // Если есть текст, выполняем коррекцию
-      if (text.trim().length >= 3) {
+      if (text && text.trim && text.trim().length >= 3) {
         cancelDebounce();
         processGrammarText(text, style);
       }
     } else {
       // Для других стилей обычная логика
-      if (text.trim().length >= 3) {
+      if (text && text.trim && text.trim().length >= 3) {
         cancelDebounce();
         processGrammarText(text, style);
       }
@@ -78,14 +78,14 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText, model, onM
   const goBack = useCallback(() => {
     const newIndex = currentIndex - 1;
     setCurrentIndex(newIndex);
-    setText(history[newIndex]); // Always set text
-  }, [currentIndex, text]);
+    setText(history[newIndex] || ''); // Добавляем fallback на пустую строку
+  }, [currentIndex, history, setText]);
 
   // Функция навигации вперед
   const goForward = useCallback(() => {
     const newIndex = currentIndex + 1;
     setCurrentIndex(newIndex);
-    setText(history[newIndex]);
+    setText(history[newIndex] || ''); // Добавляем fallback на пустую строку
   }, [currentIndex, history, setText]);
 
   // Единая функция обработки грамматики с любым стилем
@@ -210,6 +210,7 @@ const TextEditor = ({ text, setText, correctedText, setCorrectedText, model, onM
                 </div>
               )}
             </div>
+            
             {/* Выбор модели в правом нижнем углу */}
             <div className="model-selector-bottom">
               <ModelSelector 

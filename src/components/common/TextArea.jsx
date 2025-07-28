@@ -9,10 +9,17 @@ const TextArea = ({
   readOnly = false,
   className = "form-control",
   style = {},
+  showCharCounter = true,
+  charCounterPosition = "bottom", // "top" или "bottom"
   ...props 
 }) => {
   return (
     <div className="textarea-container">
+      {!readOnly && showCharCounter && charCounterPosition === "top" && (
+        <div className="char-counter char-counter-top">
+          <span>{value.length}</span>/{maxLength}
+        </div>
+      )}
       <textarea 
         className={className}
         value={value}
@@ -24,7 +31,7 @@ const TextArea = ({
         style={style}
         {...props}
       />
-      {!readOnly && (
+      {!readOnly && showCharCounter && charCounterPosition === "bottom" && (
         <div className="char-counter">
           <span>{value.length}</span>/{maxLength}
         </div>
